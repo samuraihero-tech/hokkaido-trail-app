@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>道東トレイル快適度マップ MVP</title>
+  <meta name="description" content="北海道東トレイル向けの快適度・安全情報・補給地点を可視化する静的HTML MVP" />
+  <link rel="preconnect" href="https://unpkg.com" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIINfQk0E0tV9eOH9Pu7PNZ7N6f+Z9P7vZ8=" crossorigin="" />
+  <link rel="stylesheet" href="leaflet-fallback.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar" aria-label="アプリヘッダー">
+      <div>
+        <p class="eyebrow">Hokkaido East Trail Intelligence</p>
+        <h1>道東トレイル快適度マップ</h1>
+        <p class="subtitle">観光客の安全な回遊を支援する、道東トレイル情報基盤</p>
+      </div>
+      <button class="ghost-button" id="adminButton" type="button">地域管理モード</button>
+    </header>
+
+    <main class="layout">
+      <section class="map-panel" aria-label="地図エリア">
+        <div id="map" role="application" aria-label="道東トレイル地図"></div>
+
+        <div class="search-card glass">
+          <span class="search-icon">⌕</span>
+          <input id="searchInput" type="search" placeholder="地点を検索：水場、トイレ、硫黄山…" aria-label="地点検索" />
+        </div>
+
+        <section class="comfort-card glass" aria-label="快適度スコア">
+          <div class="comfort-header">
+            <div>
+              <p class="card-label">推定スコア / 行動判断の目安</p>
+              <h2>快適度 <span id="comfortScore">--</span><small>/100</small></h2>
+              <p id="comfortStatus" class="status-text">計算中...</p>
+            </div>
+            <div class="score-ring" aria-hidden="true"><span id="scoreRingValue">--</span></div>
+          </div>
+          <p id="comfortReason" class="reason-text">天気・地形・補給地点をもとに推定しています。</p>
+          <div class="mini-indicators">
+            <div><span>暑さ</span><strong id="heatRisk">-</strong></div>
+            <div><span>雨</span><strong id="rainRisk">-</strong></div>
+            <div><span>地形</span><strong id="terrainLoad">-</strong></div>
+          </div>
+          <button id="openScoreButton" class="primary-button" type="button">なぜこのスコア？</button>
+        </section>
+
+        <section class="next-card glass" aria-label="次の補給地点">
+          <p class="card-label">次の補給地点</p>
+          <h3 id="nextPointName">計算中...</h3>
+          <p id="nextPointMeta">現在地から近い水場・トイレ・食事を確認します。</p>
+        </section>
+      </section>
+
+      <aside class="side-panel" aria-label="情報パネル">
+        <section class="panel-card">
+          <div class="section-title-row">
+            <div>
+              <p class="eyebrow">Layers</p>
+              <h2>表示レイヤー</h2>
+            </div>
+            <button class="text-button" id="resetLayers" type="button">初期化</button>
+          </div>
+          <div class="layer-grid" id="layerControls" aria-label="レイヤー切替"></div>
+        </section>
+
+        <section class="panel-card route-card">
+          <p class="eyebrow">Imported Data Demo</p>
+          <h2>釧路 〜 川湯 〜 知床斜里 〜 羅臼</h2>
+          <div class="route-stats">
+            <div><span>地点数</span><strong>625件</strong></div>
+            <div><span>初期表示</span><strong>主要レイヤー</strong></div>
+            <div><span>対象</span><strong>道東広域</strong></div>
+          </div>
+          <div class="route-alert warning">
+            <strong>注意</strong>
+            <p>CSV由来の広域地点データを表示しています。水場・危険情報は現地確認前提で、食事・宿泊は件数が多いため初期表示をオフにしています。</p>
+          </div>
+          <button id="fitRouteButton" class="secondary-button" type="button">トレイル広域を表示</button>
+        </section>
+
+
+
+        <section class="panel-card official-map-card">
+          <div class="section-title-row">
+            <div>
+              <p class="eyebrow">Official Route Maps</p>
+              <h2>公式ルート・注意情報</h2>
+            </div>
+            <span class="small-badge">KML連携</span>
+          </div>
+          <p class="muted compact">アップロードされた公式Google My MapsのKMLを参照マップとして組み込みました。</p>
+          <div id="officialMapList" class="official-map-list"></div>
+          <div class="route-alert note">
+            <strong>次ステップ</strong>
+            <p>今回のKMLはNetworkLink型のため、正確な線・面の座標本体はGoogle My Maps側にあります。完全にLeaflet上へ重ねるには、NetworkLinkではないKML/KMZまたはGPXを書き出して取り込みます。</p>
+          </div>
+        </section>
+
+        <section class="panel-card checklist-card">
+          <p class="eyebrow">Before Start</p>
+          <h2>出発前チェック</h2>
+          <ul class="checklist" id="checklist"></ul>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <div id="drawerBackdrop" class="drawer-backdrop" hidden></div>
+  <section id="detailDrawer" class="drawer" aria-live="polite" aria-label="詳細情報" aria-hidden="true">
+    <div class="drawer-handle"></div>
+    <button class="drawer-close" id="closeDrawer" type="button" aria-label="閉じる">×</button>
+    <div id="drawerContent"></div>
+  </section>
+
+  <template id="scoreDetailTemplate">
+    <div class="drawer-section">
+      <p class="eyebrow">Comfort Intelligence</p>
+      <h2>快適度の根拠</h2>
+      <p class="muted">このスコアは、天気・地形・補給地点・安全情報をもとにした<strong>行動判断の目安</strong>です。医療・防災上の正式指標ではありません。</p>
+      <div class="score-breakdown">
+        <div class="big-score"><span id="detailScore">82</span><small>/100</small></div>
+        <div>
+          <h3 id="detailStatus">歩行に適しています</h3>
+          <p id="detailReason">気温が快適で、風が弱く、近くに水場があります。</p>
+        </div>
+      </div>
+      <div class="factor-grid" id="factorGrid"></div>
+    </div>
+    <div class="drawer-section">
+      <h3>推奨アクション</h3>
+      <ul class="action-list" id="actionList"></ul>
+    </div>
+    <div class="drawer-section data-source">
+      <h3>データの根拠</h3>
+      <dl>
+        <div><dt>天気</dt><dd>気象予報データ / サンプルではOpen-Meteo想定</dd></div>
+        <div><dt>標高</dt><dd>公開標高データを想定</dd></div>
+        <div><dt>地表温度</dt><dd>衛星データによる季節傾向 / サンプル表示</dd></div>
+        <div><dt>地形・地盤</dt><dd>公開地形・地質データと現地確認情報をもとに推定</dd></div>
+        <div><dt>観光地点</dt><dd>観光協会・現地事業者による確認</dd></div>
+        <div><dt>ヒグマ注意</dt><dd>自治体・現地情報を反映する想定</dd></div>
+      </dl>
+    </div>
+  </template>
+
+  <template id="adminTemplate">
+    <div class="drawer-section admin-drawer">
+      <p class="eyebrow">Local Management</p>
+      <h2>地域管理モード</h2>
+      <p class="muted">観光協会・自治体が地点情報や安全情報を更新できます。MVPでは管理画面の概念表示です。</p>
+      <div class="admin-metrics">
+        <div><span>登録地点数</span><strong id="adminPlaceCount">--</strong></div>
+        <div><span>未確認スポット</span><strong id="adminUnverifiedCount">--</strong></div>
+        <div><span>注意情報</span><strong id="adminWarningCount">--</strong></div>
+        <div><span>最終更新日</span><strong>2026/05/21</strong></div>
+      </div>
+      <div class="admin-actions">
+        <button type="button">地点を追加</button>
+        <button type="button">CSVインポート</button>
+        <button type="button">ヒグマ注意情報を更新</button>
+        <button type="button">観光協会確認済みにする</button>
+      </div>
+      <div class="sample-table-wrap">
+        <table class="sample-table">
+          <thead><tr><th>地点名</th><th>カテゴリ</th><th>状態</th><th>更新</th></tr></thead>
+          <tbody id="adminTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </template>
+
+
+
+  <template id="officialMapTemplate">
+    <div class="drawer-section official-map-drawer">
+      <p class="eyebrow">Official Google My Maps</p>
+      <h2 id="officialMapTitle">公式マップ</h2>
+      <p id="officialMapDescription" class="muted"></p>
+      <div class="official-map-frame-wrap">
+        <iframe id="officialMapFrame" title="公式Google My Maps" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+      <div class="official-map-actions">
+        <a id="officialMapOpen" class="secondary-button" target="_blank" rel="noopener">Google My Mapsで開く</a>
+        <a id="officialMapKml" class="text-link" target="_blank" rel="noopener">アップロードKMLを確認</a>
+      </div>
+      <div class="route-alert note">
+        <strong>取り込み状態</strong>
+        <p id="officialMapStatus">NetworkLink型KMLとして参照しています。</p>
+      </div>
+    </div>
+  </template>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="data.js"></script>
+  <script src="route-maps.js"></script>
+  <script src="comfort-score.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

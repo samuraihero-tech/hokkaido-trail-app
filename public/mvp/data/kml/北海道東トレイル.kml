@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>北海道東トレイル</name>
+    <description><![CDATA[＜北海道東トレイル＞<br>メインルートと阿寒ルートを合わせた全体のルートを表示しています。<br><br>＜道路情報＞<br>車両との併用道路など、交通に関しての注意点となります。事前情報として計画の際に確認てください。<br><br>＜電波状況＞<br>トレイルルート周辺の電波が繋がりにくいエリアを表示しています。]]></description>
+    <NetworkLink>
+      <name>北海道東トレイル</name>
+      <Link>
+        <href><![CDATA[https://www.google.com/maps/d/u/0/kml?forcekml=1&mid=1QzhYccu3Mt1xvNx74fC3KavaYhm5xz4]]></href>
+      </Link>
+    </NetworkLink>
+  </Document>
+</kml>

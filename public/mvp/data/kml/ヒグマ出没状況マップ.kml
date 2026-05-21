@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>ヒグマ出没状況マップ</name>
+    <description><![CDATA[＜北海道東トレイル＞<br>メインルートと阿寒ルートを合わせた全体のルートを表示しています。<br><br>＜ヒグマ出没数／市町村（濃い＝多い）＞<br>市町村ごとのヒグマの出没報告件数で色の濃さを変えています。全体に濃くても、エリアごとに異なります。人が少ない場所では目撃する機会も少ないので出没数が少なく計測される傾向があります。]]></description>
+    <NetworkLink>
+      <name>ヒグマ出没状況マップ</name>
+      <Link>
+        <href><![CDATA[https://www.google.com/maps/d/u/0/kml?forcekml=1&mid=1XoG_7-2sXsQaD8haiQ6NLwToqw7g9mk]]></href>
+      </Link>
+    </NetworkLink>
+  </Document>
+</kml>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>クマ対策ギアレンタル＆販売拠点</name>
+    <description><![CDATA[北海道東トレイル沿線のクマ対策ギアのレンタルおよび販売拠点に関する情報です。<br><br>※在庫は随時更新となりますので、最新情報は各施設等にご確認ください。]]></description>
+    <NetworkLink>
+      <name>クマ対策ギアレンタル＆販売拠点</name>
+      <Link>
+        <href><![CDATA[https://www.google.com/maps/d/u/0/kml?forcekml=1&mid=12rCyQPNu7P8FNXKQXfBQg-7Ul6Nyxss]]></href>
+      </Link>
+    </NetworkLink>
+  </Document>
+</kml>
