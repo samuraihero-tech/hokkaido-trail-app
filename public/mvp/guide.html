@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>観光ガイド向けSP画面 | 道東トレイル</title>
-  <meta name="description" content="道東トレイルの現地ガイドが今日のツアー、参加者、危険報告、連絡操作を行うSP画面デモ" />
+  <meta name="description" content="複数の観光客をガイドする現場向けの参加者位置・状態・連絡管理SPデモ" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body data-page="guide" class="guide-mobile-page">
@@ -16,11 +16,12 @@
       </div>
     </header>
 
-    <section class="guide-tour-card">
+    <section class="guide-tour-card" id="status" aria-label="本日のツアー">
       <div>
-        <p class="card-label">Today / Section 4</p>
+        <p class="card-label">Today / Field Control</p>
         <h2>川湯温泉街 → 神の子池</h2>
         <p>集合 08:40 / 出発 09:10 / 終了予定 15:40</p>
+        <strong class="guide-delay-status">予定より12分遅れ</strong>
       </div>
       <div class="guide-tour-score">
         <span>快適度</span>
@@ -30,36 +31,82 @@
 
     <section class="guide-location-grid" aria-label="現在地と補給地点">
       <article class="guide-info-card">
-        <p class="card-label">現在地</p>
-        <h2>川湯温泉街付近</h2>
+        <p class="card-label">ガイド現在地</p>
+        <h2>川湯温泉街北側の森区間</h2>
         <p>43.6388, 144.4382 / 通信やや不安定</p>
       </article>
       <article class="guide-info-card">
-        <p class="card-label">次の補給地点</p>
+        <p class="card-label">次の集合・補給地点</p>
         <h2 id="guideNextSupplyName">確認中</h2>
         <p id="guideNextSupplyMeta">水場・トイレ・自販機を確認しています。</p>
       </article>
     </section>
 
-    <section class="guide-panel" aria-label="参加者チェックリスト">
+    <section class="guide-panel alert-panel" aria-label="要確認アラート">
       <div class="guide-section-head">
         <div>
-          <p class="eyebrow">Participants</p>
-          <h2>参加者チェック</h2>
+          <p class="eyebrow">Needs Attention</p>
+          <h2>要確認アラート</h2>
         </div>
-        <span id="guideCheckedCount">0/6</span>
+        <span id="guideAlertCount">0件</span>
       </div>
-      <div class="participant-list" id="participantChecklist">
-        <label><input type="checkbox" checked /> <span>佐藤 花</span><em>通常</em></label>
-        <label><input type="checkbox" checked /> <span>田中 誠</span><em>通常</em></label>
-        <label><input type="checkbox" /> <span>鈴木 美咲</span><em>足首注意</em></label>
-        <label><input type="checkbox" checked /> <span>高橋 蓮</span><em>通常</em></label>
-        <label><input type="checkbox" /> <span>伊藤 葵</span><em>水分確認</em></label>
-        <label><input type="checkbox" /> <span>渡辺 悠</span><em>通常</em></label>
+      <div class="guide-alert-list" id="guideAlertList"></div>
+    </section>
+
+    <section class="guide-panel" id="map" aria-label="参加者ミニマップ">
+      <div class="guide-section-head">
+        <div>
+          <p class="eyebrow">Live Mini Map</p>
+          <h2>参加者位置</h2>
+        </div>
+        <span>6名</span>
+      </div>
+      <div class="guide-mini-map">
+        <div class="guide-route-line"></div>
+        <div class="guide-route-line branch"></div>
+        <span class="guide-map-label start">川湯</span>
+        <span class="guide-map-label meetup">次の集合地点</span>
+        <span class="guide-map-risk">倒木報告</span>
+        <button class="guide-map-dot guide-dot guide" type="button" data-participant-id="guide">G</button>
+        <div id="guideMapDots"></div>
+      </div>
+      <div class="guide-map-legend">
+        <span><i class="normal"></i>通常</span>
+        <span><i class="caution"></i>注意</span>
+        <span><i class="urgent"></i>要対応</span>
+        <span><i class="stale"></i>未更新</span>
       </div>
     </section>
 
-    <section class="guide-panel" aria-label="危険報告">
+    <section class="guide-panel" id="participants" aria-label="参加者ライブ状況">
+      <div class="guide-section-head">
+        <div>
+          <p class="eyebrow">Participants</p>
+          <h2>参加者ライブ状況</h2>
+        </div>
+        <span id="guideConfirmedCount">0/6確認</span>
+      </div>
+      <p class="guide-privacy-note">位置情報はツアー中のみ共有される想定のデモ表示です。</p>
+      <div class="participant-live-list" id="participantLiveList"></div>
+    </section>
+
+    <section class="guide-panel" aria-label="全員確認">
+      <div class="guide-section-head">
+        <div>
+          <p class="eyebrow">Safety Check</p>
+          <h2>全員確認</h2>
+        </div>
+        <span id="guideCheckSummary">0/6</span>
+      </div>
+      <p class="guide-unconfirmed" id="guideUnconfirmedNames">未確認者を確認中...</p>
+      <div class="guide-contact-actions">
+        <button type="button" data-guide-contact="全員に現在地確認を送る">全員に現在地確認を送る</button>
+        <button type="button" data-guide-contact="未確認者だけに確認を送る">未確認者だけに確認を送る</button>
+      </div>
+      <button class="guide-emergency-check" id="guideEmergencyCheck" type="button">緊急時の全員確認</button>
+    </section>
+
+    <section class="guide-panel" id="report" aria-label="危険報告">
       <div class="guide-section-head">
         <div>
           <p class="eyebrow">Risk Report</p>
@@ -73,10 +120,17 @@
         <button type="button" data-guide-report="体調不良">体調不良</button>
         <button type="button" data-guide-report="悪天候">悪天候</button>
       </div>
+      <article class="guide-report-preview" id="guideReportPreview">
+        <strong>報告内容</strong>
+        <span>報告種別：未選択</span>
+        <span>発生場所：現在地</span>
+        <span>共有範囲：管理者のみ / 参加者全員 / 近隣ユーザー</span>
+        <span>メモ：未入力</span>
+      </article>
       <p class="guide-status" id="guideReportStatus">危険報告は未送信です。</p>
     </section>
 
-    <section class="guide-panel" aria-label="連絡操作">
+    <section class="guide-panel" id="contact" aria-label="連絡操作">
       <div class="guide-section-head">
         <div>
           <p class="eyebrow">Contact</p>
@@ -86,13 +140,21 @@
       <div class="guide-contact-actions">
         <button type="button" data-guide-contact="管理者へ連絡">管理者へ連絡</button>
         <button type="button" data-guide-contact="参加者へ一斉連絡">参加者へ一斉連絡</button>
-        <button type="button" data-guide-contact="参加者へ個別連絡">参加者へ個別連絡</button>
+        <button type="button" data-guide-contact="未確認者へ連絡">未確認者へ連絡</button>
+        <button type="button" data-guide-contact="選択した参加者へ個別連絡">選択した参加者へ個別連絡</button>
       </div>
-      <button class="guide-emergency-check" id="guideEmergencyCheck" type="button">緊急時の全員確認</button>
-      <p class="guide-status" id="guideContactStatus">連絡操作を選択してください。</p>
+      <p class="guide-status" id="guideContactStatus">アプリ内通話/チャット風のデモ操作を選択してください。</p>
     </section>
-
   </main>
+
+  <nav class="guide-bottom-tabs" aria-label="ガイド画面タブ">
+    <a href="#status">状況</a>
+    <a href="#map">地図</a>
+    <a href="#participants">参加者</a>
+    <a href="#report">報告</a>
+    <a href="#contact">連絡</a>
+  </nav>
+
   <script src="js/data.js"></script>
   <script src="js/pages.js"></script>
 </body>

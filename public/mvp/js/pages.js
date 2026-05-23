@@ -141,34 +141,233 @@
     const supply = places.find((place) => ["water", "vending", "convenience", "toilet"].includes(place.layer));
     if (supply) {
       setText("guideNextSupplyName", supply.name);
-      setText("guideNextSupplyMeta", `${layerLabel(supply.layer)} / 現地確認: ${supply.verified ? "済" : "未確認"}`);
+      setText("guideNextSupplyMeta", `${layerLabel(supply.layer)} / 次の集合地点まで約1.8km / 現地確認: ${supply.verified ? "済" : "未確認"}`);
     }
 
-    const checklist = document.getElementById("participantChecklist");
-    const checkedCount = document.getElementById("guideCheckedCount");
+    const participants = [
+      {
+        id: "sato",
+        name: "佐藤 花",
+        relation: "同行中",
+        status: "通常",
+        statusKey: "normal",
+        updated: "1分前",
+        signal: "良好",
+        confirmed: true,
+        meetup: "1.8km",
+        memo: "先頭付近で安定。次の分岐で集合予定。",
+        map: { left: 42, top: 58 }
+      },
+      {
+        id: "tanaka",
+        name: "田中 誠",
+        relation: "650m先行",
+        status: "通常",
+        statusKey: "normal",
+        updated: "3分前",
+        signal: "良好",
+        confirmed: true,
+        meetup: "1.2km",
+        memo: "ペースが速め。集合地点で待機指示候補。",
+        map: { left: 60, top: 46 }
+      },
+      {
+        id: "suzuki",
+        name: "鈴木 美咲",
+        relation: "180m後方",
+        status: "足首注意",
+        statusKey: "caution",
+        updated: "4分前",
+        signal: "良好",
+        confirmed: false,
+        meetup: "2.0km",
+        memo: "足首注意、ペース低下。休憩と水分確認が必要。",
+        map: { left: 33, top: 66 }
+      },
+      {
+        id: "takahashi",
+        name: "高橋 蓮",
+        relation: "ルート外れ120m",
+        status: "ルート外れ",
+        statusKey: "urgent",
+        updated: "2分前",
+        signal: "やや不安定",
+        confirmed: false,
+        meetup: "2.4km",
+        memo: "予定ルートから外れています。現在地確認と待機指示を推奨。",
+        map: { left: 70, top: 31 }
+      },
+      {
+        id: "ito",
+        name: "伊藤 葵",
+        relation: "420m後方",
+        status: "水分確認",
+        statusKey: "caution",
+        updated: "6分前",
+        signal: "やや不安定",
+        confirmed: true,
+        meetup: "2.3km",
+        memo: "暑さで水分消費が早い可能性。補給確認を推奨。",
+        map: { left: 25, top: 73 }
+      },
+      {
+        id: "watanabe",
+        name: "渡辺 悠",
+        relation: "760m後方",
+        status: "位置未更新",
+        statusKey: "stale",
+        updated: "18分前",
+        signal: "未更新",
+        confirmed: false,
+        meetup: "2.8km",
+        memo: "位置情報が15分以上更新されていません。現在地再送を依頼してください。",
+        map: { left: 18, top: 42 }
+      }
+    ];
+
+    let selectedParticipant = participants.find((participant) => !participant.confirmed) || participants[0];
+    const liveList = document.getElementById("participantLiveList");
+    const mapDots = document.getElementById("guideMapDots");
+    const unconfirmedNames = document.getElementById("guideUnconfirmedNames");
+    const alertList = document.getElementById("guideAlertList");
+    const alertCount = document.getElementById("guideAlertCount");
     const reportStatus = document.getElementById("guideReportStatus");
+    const reportPreview = document.getElementById("guideReportPreview");
     const contactStatus = document.getElementById("guideContactStatus");
     const emergencyCheck = document.getElementById("guideEmergencyCheck");
     const reportButtons = document.querySelectorAll("[data-guide-report]");
     const contactButtons = document.querySelectorAll("[data-guide-contact]");
 
-    function updateCheckedCount() {
-      if (!checklist || !checkedCount) return;
-      const boxes = [...checklist.querySelectorAll("input[type='checkbox']")];
-      const checked = boxes.filter((box) => box.checked).length;
-      checkedCount.textContent = `${checked}/${boxes.length}`;
+    function renderGuideSummary() {
+      const confirmed = participants.filter((participant) => participant.confirmed).length;
+      const unconfirmed = participants.filter((participant) => !participant.confirmed).map((participant) => participant.name);
+      setText("guideConfirmedCount", `${confirmed}/6確認`);
+      setText("guideCheckSummary", `${confirmed}/6`);
+      if (unconfirmedNames) {
+        unconfirmedNames.textContent = unconfirmed.length
+          ? `未確認者：${unconfirmed.join("、")}`
+          : "全員確認済みです。";
+      }
     }
 
-    if (checklist) {
-      checklist.addEventListener("change", updateCheckedCount);
-      updateCheckedCount();
+    function renderAlerts() {
+      const alerts = [
+        { level: "urgent", text: "渡辺 悠：位置情報が18分更新されていません" },
+        { level: "urgent", text: "高橋 蓮：予定ルートから120m外れています" },
+        { level: "caution", text: "鈴木 美咲：足首注意、ペース低下" },
+        { level: "caution", text: "伊藤 葵：ガイドから420m後方、水分確認" }
+      ];
+      if (alertCount) alertCount.textContent = `${alerts.length}件`;
+      if (alertList) {
+        alertList.innerHTML = alerts.map((alert) => `
+          <article class="${escapeHtml(alert.level)}">${escapeHtml(alert.text)}</article>
+        `).join("");
+      }
+    }
+
+    function renderMapDots() {
+      if (!mapDots) return;
+      mapDots.innerHTML = participants.map((participant) => `
+        <button
+          class="guide-map-dot ${escapeHtml(participant.statusKey)}"
+          type="button"
+          data-participant-id="${escapeHtml(participant.id)}"
+          style="left:${participant.map.left}%;top:${participant.map.top}%"
+          aria-label="${escapeHtml(participant.name)} ${escapeHtml(participant.status)}"
+        >${escapeHtml(participant.name.slice(0, 1))}</button>
+      `).join("");
+    }
+
+    function renderParticipants() {
+      if (!liveList) return;
+      liveList.innerHTML = participants.map((participant) => {
+        const active = selectedParticipant?.id === participant.id ? " active" : "";
+        return `
+          <article class="participant-live-card ${escapeHtml(participant.statusKey)}${active}" data-participant-card="${escapeHtml(participant.id)}">
+            <button class="participant-live-main" type="button" data-participant-id="${escapeHtml(participant.id)}">
+              <span class="participant-status-dot ${escapeHtml(participant.statusKey)}"></span>
+              <div>
+                <strong>${escapeHtml(participant.name)}</strong>
+                <span>${escapeHtml(participant.relation)} / ${escapeHtml(participant.status)}</span>
+              </div>
+              <em>${escapeHtml(participant.updated)}</em>
+            </button>
+            <div class="participant-live-meta">
+              <span>通信：${escapeHtml(participant.signal)}</span>
+              <span>集合地点まで：${escapeHtml(participant.meetup)}</span>
+            </div>
+            ${active ? renderParticipantDetail(participant) : ""}
+          </article>
+        `;
+      }).join("");
+    }
+
+    function renderParticipantDetail(participant) {
+      const messages = ["ペースを落としてください", "次の分岐で待機してください", "水分を取ってください", "現在地を再送してください", "ガイドが向かいます"];
+      return `
+        <div class="participant-detail">
+          <dl>
+            <div><dt>現在の状態</dt><dd>${escapeHtml(participant.status)}</dd></div>
+            <div><dt>最終位置更新</dt><dd>${escapeHtml(participant.updated)}</dd></div>
+            <div><dt>ガイドから</dt><dd>${escapeHtml(participant.relation)}</dd></div>
+            <div><dt>集合地点まで</dt><dd>${escapeHtml(participant.meetup)}</dd></div>
+          </dl>
+          <p>${escapeHtml(participant.memo)}</p>
+          <div class="preset-message-grid">
+            ${messages.map((message) => `<button type="button" data-guide-message="${escapeHtml(message)}" data-participant-name="${escapeHtml(participant.name)}">${escapeHtml(message)}</button>`).join("")}
+          </div>
+        </div>
+      `;
+    }
+
+    function selectParticipant(id) {
+      const participant = participants.find((item) => item.id === id);
+      if (!participant) return;
+      selectedParticipant = participant;
+      renderParticipants();
+    }
+
+    renderGuideSummary();
+    renderAlerts();
+    renderMapDots();
+    renderParticipants();
+
+    if (liveList) {
+      liveList.addEventListener("click", (event) => {
+        const participantButton = event.target.closest("[data-participant-id]");
+        if (participantButton) selectParticipant(participantButton.dataset.participantId);
+        const messageButton = event.target.closest("[data-guide-message]");
+        if (messageButton && contactStatus) {
+          contactStatus.textContent = `${messageButton.dataset.participantName}さんへ「${messageButton.dataset.guideMessage}」を送信するデモ状態にしました。`;
+        }
+      });
+    }
+
+    if (mapDots) {
+      mapDots.addEventListener("click", (event) => {
+        const dot = event.target.closest("[data-participant-id]");
+        if (dot) {
+          selectParticipant(dot.dataset.participantId);
+          document.getElementById("participants")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      });
     }
 
     reportButtons.forEach((button) => {
       button.addEventListener("click", () => {
         reportButtons.forEach((item) => item.classList.remove("active"));
         button.classList.add("active");
-        if (reportStatus) reportStatus.textContent = `「${button.dataset.guideReport}」を管理者へ報告するデモ状態にしました。`;
+        const type = button.dataset.guideReport;
+        if (reportPreview) {
+          reportPreview.innerHTML = `
+            <strong>報告内容</strong>
+            <span>報告種別：${escapeHtml(type)}</span>
+            <span>発生場所：現在地</span>
+            <span>共有範囲：管理者のみ / 参加者全員 / 近隣ユーザー</span>
+            <span>メモ：未入力</span>
+          `;
+        }
+        if (reportStatus) reportStatus.textContent = `「${type}」を管理者へ報告し、参加者へ注意喚起するデモ状態にしました。`;
       });
     });
 
@@ -176,16 +375,27 @@
       button.addEventListener("click", () => {
         contactButtons.forEach((item) => item.classList.remove("active"));
         button.classList.add("active");
-        if (contactStatus) contactStatus.textContent = `「${button.dataset.guideContact}」を選択しました。実通信は行っていません。`;
+        const action = button.dataset.guideContact;
+        const targetName = selectedParticipant?.name || "選択中の参加者";
+        const unconfirmed = participants.filter((participant) => !participant.confirmed).map((participant) => participant.name);
+        if (contactStatus) {
+          if (action === "選択した参加者へ個別連絡") {
+            contactStatus.textContent = `${targetName}さんとのアプリ内チャットを開くデモ状態にしました。`;
+          } else if (action.includes("未確認者")) {
+            contactStatus.textContent = `未確認者（${unconfirmed.join("、")}）へ現在地確認を送るデモ状態にしました。`;
+          } else {
+            contactStatus.textContent = `「${action}」をアプリ内通話/チャット風に開始するデモ状態にしました。`;
+          }
+        }
       });
     });
 
     if (emergencyCheck) {
       emergencyCheck.addEventListener("click", () => {
-        const unchecked = checklist ? [...checklist.querySelectorAll("input:not(:checked)")].length : 0;
+        const unchecked = participants.filter((participant) => !participant.confirmed);
         emergencyCheck.classList.add("active");
-        if (contactStatus) contactStatus.textContent = unchecked
-          ? `全員確認を開始しました。未確認 ${unchecked}名に個別確認が必要です。`
+        if (contactStatus) contactStatus.textContent = unchecked.length
+          ? `全員確認を開始しました。未確認 ${unchecked.length}名（${unchecked.map((participant) => participant.name).join("、")}）に確認が必要です。`
           : "全員確認済みです。管理者へ安全確認を共有するデモ状態にしました。";
       });
     }
