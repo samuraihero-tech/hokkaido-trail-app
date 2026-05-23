@@ -3,22 +3,21 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>道東トレイル快適度マップ MVP</title>
+  <title>道東トレイル ユーザーアプリ</title>
   <meta name="description" content="北海道東トレイル向けの快適度・安全情報・補給地点を可視化する静的HTML MVP" />
   <link rel="preconnect" href="https://unpkg.com" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIINfQk0E0tV9eOH9Pu7PNZ7N6f+Z9P7vZ8=" crossorigin="" />
   <link rel="stylesheet" href="leaflet-fallback.css" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="css/style.css" />
 </head>
-<body>
+<body data-page="user">
   <div class="app-shell">
     <header class="topbar" aria-label="アプリヘッダー">
       <div>
         <p class="eyebrow">Hokkaido East Trail Intelligence</p>
-        <h1>道東トレイル快適度マップ</h1>
-        <p class="subtitle">観光客の安全な回遊を支援する、道東トレイル情報基盤</p>
+        <h1>道東トレイル ユーザーアプリ</h1>
+        <p class="subtitle">歩行者向けの快適度・補給・安全確認SPデモ</p>
       </div>
-      <button class="ghost-button" id="adminButton" type="button">地域管理モード</button>
     </header>
 
     <main class="layout">
@@ -109,6 +108,55 @@
     </main>
   </div>
 
+  <button class="emergency-fab" id="emergencySupportButton" type="button" aria-controls="emergencySheet">
+    <span>緊急サポート</span>
+    <small>現在地・状況を共有</small>
+  </button>
+
+  <div id="emergencyBackdrop" class="emergency-backdrop" hidden></div>
+  <section id="emergencySheet" class="emergency-sheet" aria-label="緊急サポート" aria-hidden="true">
+    <div class="drawer-handle"></div>
+    <button class="drawer-close" id="closeEmergencySheet" type="button" aria-label="閉じる">×</button>
+    <div class="emergency-content">
+      <p class="eyebrow">Emergency Support</p>
+      <h2>緊急サポート</h2>
+      <p class="muted">デモ用のサポート画面です。実際の通信・通報は行いません。</p>
+
+      <section class="location-share-card" aria-label="現在地共有">
+        <div>
+          <p class="card-label">現在地共有カード</p>
+          <h3>川湯温泉街付近</h3>
+          <p>43.6388, 144.4382 / 推定精度 80m</p>
+        </div>
+        <span id="locationShareStatus">未共有</span>
+      </section>
+
+      <section class="emergency-section" aria-label="状況選択">
+        <h3>状況を選択</h3>
+        <div class="emergency-choice-grid">
+          <button type="button" data-emergency-action="道迷い">道迷い</button>
+          <button type="button" data-emergency-action="ケガ">ケガ</button>
+          <button type="button" data-emergency-action="ヒグマ">ヒグマ</button>
+          <button type="button" data-emergency-action="体調不良">体調不良</button>
+          <button type="button" data-emergency-action="悪天候">悪天候</button>
+        </div>
+      </section>
+
+      <section class="emergency-section" aria-label="連絡先選択">
+        <h3>連絡先</h3>
+        <div class="support-action-grid">
+          <button type="button" data-support-channel="観光協会にチャット">観光協会にチャット</button>
+          <button type="button" data-support-channel="ガイドに連絡">ガイドに連絡</button>
+          <button type="button" data-support-channel="119/110/118">119/110/118</button>
+        </div>
+      </section>
+
+      <div class="emergency-status" id="emergencyStatus" role="status">
+        状況を選択して、連絡先を選んでください。
+      </div>
+    </div>
+  </section>
+
   <div id="drawerBackdrop" class="drawer-backdrop" hidden></div>
   <section id="detailDrawer" class="drawer" aria-live="polite" aria-label="詳細情報" aria-hidden="true">
     <div class="drawer-handle"></div>
@@ -195,9 +243,10 @@
   </template>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <script src="data.js"></script>
+  <script src="js/data.js"></script>
   <script src="route-maps.js"></script>
   <script src="comfort-score.js"></script>
+  <script src="js/pages.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

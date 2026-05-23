@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>観光ガイド向けSP画面 | 道東トレイル</title>
+  <meta name="description" content="道東トレイルの現地ガイドが今日のツアー、参加者、危険報告、連絡操作を行うSP画面デモ" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body data-page="guide" class="guide-mobile-page">
+  <main class="guide-app" aria-label="観光ガイド向けスマートフォン画面">
+    <header class="guide-header">
+      <div>
+        <p class="eyebrow">Guide Field App</p>
+        <h1>本日のツアー</h1>
+      </div>
+    </header>
+
+    <section class="guide-tour-card">
+      <div>
+        <p class="card-label">Today / Section 4</p>
+        <h2>川湯温泉街 → 神の子池</h2>
+        <p>集合 08:40 / 出発 09:10 / 終了予定 15:40</p>
+      </div>
+      <div class="guide-tour-score">
+        <span>快適度</span>
+        <strong id="guideRouteScore">--</strong>
+      </div>
+    </section>
+
+    <section class="guide-location-grid" aria-label="現在地と補給地点">
+      <article class="guide-info-card">
+        <p class="card-label">現在地</p>
+        <h2>川湯温泉街付近</h2>
+        <p>43.6388, 144.4382 / 通信やや不安定</p>
+      </article>
+      <article class="guide-info-card">
+        <p class="card-label">次の補給地点</p>
+        <h2 id="guideNextSupplyName">確認中</h2>
+        <p id="guideNextSupplyMeta">水場・トイレ・自販機を確認しています。</p>
+      </article>
+    </section>
+
+    <section class="guide-panel" aria-label="参加者チェックリスト">
+      <div class="guide-section-head">
+        <div>
+          <p class="eyebrow">Participants</p>
+          <h2>参加者チェック</h2>
+        </div>
+        <span id="guideCheckedCount">0/6</span>
+      </div>
+      <div class="participant-list" id="participantChecklist">
+        <label><input type="checkbox" checked /> <span>佐藤 花</span><em>通常</em></label>
+        <label><input type="checkbox" checked /> <span>田中 誠</span><em>通常</em></label>
+        <label><input type="checkbox" /> <span>鈴木 美咲</span><em>足首注意</em></label>
+        <label><input type="checkbox" checked /> <span>高橋 蓮</span><em>通常</em></label>
+        <label><input type="checkbox" /> <span>伊藤 葵</span><em>水分確認</em></label>
+        <label><input type="checkbox" /> <span>渡辺 悠</span><em>通常</em></label>
+      </div>
+    </section>
+
+    <section class="guide-panel" aria-label="危険報告">
+      <div class="guide-section-head">
+        <div>
+          <p class="eyebrow">Risk Report</p>
+          <h2>危険報告</h2>
+        </div>
+      </div>
+      <div class="danger-report-grid">
+        <button type="button" data-guide-report="ヒグマ">ヒグマ</button>
+        <button type="button" data-guide-report="倒木">倒木</button>
+        <button type="button" data-guide-report="通行止め">通行止め</button>
+        <button type="button" data-guide-report="体調不良">体調不良</button>
+        <button type="button" data-guide-report="悪天候">悪天候</button>
+      </div>
+      <p class="guide-status" id="guideReportStatus">危険報告は未送信です。</p>
+    </section>
+
+    <section class="guide-panel" aria-label="連絡操作">
+      <div class="guide-section-head">
+        <div>
+          <p class="eyebrow">Contact</p>
+          <h2>連絡</h2>
+        </div>
+      </div>
+      <div class="guide-contact-actions">
+        <button type="button" data-guide-contact="管理者へ連絡">管理者へ連絡</button>
+        <button type="button" data-guide-contact="参加者へ一斉連絡">参加者へ一斉連絡</button>
+        <button type="button" data-guide-contact="参加者へ個別連絡">参加者へ個別連絡</button>
+      </div>
+      <button class="guide-emergency-check" id="guideEmergencyCheck" type="button">緊急時の全員確認</button>
+      <p class="guide-status" id="guideContactStatus">連絡操作を選択してください。</p>
+    </section>
+
+  </main>
+  <script src="js/data.js"></script>
+  <script src="js/pages.js"></script>
+</body>
+</html>

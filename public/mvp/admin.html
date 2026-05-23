@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>観光協会向けPC管理ダッシュボード | 道東トレイル</title>
+  <meta name="description" content="道東トレイルの地点管理・CSV取込・緊急連絡ログを確認する観光協会向けPC管理ダッシュボード" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body data-page="admin">
+  <div class="admin-dashboard-shell">
+    <aside class="admin-sidebar" aria-label="管理メニュー">
+      <div class="admin-brand">
+        <p class="eyebrow">Trail Admin</p>
+        <h1>観光協会管理</h1>
+        <p>道東トレイルの地点・安全・連絡ログを管理</p>
+      </div>
+      <section class="admin-side-card">
+        <p class="eyebrow">CSV Import</p>
+        <h2>CSVインポート状況</h2>
+        <div class="csv-status">
+          <strong>完了</strong>
+          <span>hokkaido_east_trail_points_consolidated.csv</span>
+          <small>最終取込: 2026/05/21 18:19</small>
+        </div>
+        <div class="csv-progress" aria-label="CSV取込進捗"><span style="width: 92%"></span></div>
+        <p class="muted compact">625件中、座標・カテゴリの基本チェックは完了。営業状況と現地確認は継続中です。</p>
+      </section>
+
+      <section class="admin-side-card">
+        <p class="eyebrow">Review Status</p>
+        <h2>確認ステータス</h2>
+        <div class="review-metrics">
+          <div><span>確認済み</span><strong id="adminVerifiedCount">--</strong></div>
+          <div><span>未確認</span><strong id="adminUnverifiedCount">--</strong></div>
+          <div><span>要確認</span><strong id="adminNeedsReviewCount">--</strong></div>
+        </div>
+      </section>
+    </aside>
+
+    <main class="admin-map-column" aria-label="地図と地点管理">
+      <header class="admin-work-header">
+        <div>
+          <p class="eyebrow">Hokkaido East Trail Intelligence</p>
+          <h2>地点管理ダッシュボード</h2>
+          <p class="subtitle">自販機・水場・危険情報など、歩行者に公開する地点データを俯瞰します。</p>
+        </div>
+        <div class="admin-header-actions">
+          <button class="secondary-button" type="button">CSV再取込</button>
+          <button class="primary-button" type="button">公開更新</button>
+        </div>
+      </header>
+
+      <section class="admin-demo-map" aria-label="デモ地図">
+        <div class="map-route-line"></div>
+        <span class="map-pin pin-a">水</span>
+        <span class="map-pin pin-b">厠</span>
+        <span class="map-pin pin-c">!</span>
+        <span class="map-pin pin-d">宿</span>
+        <div class="admin-map-legend">
+          <strong>道東トレイル広域デモ</strong>
+          <span>釧路 - 川湯 - 知床斜里 - 羅臼</span>
+        </div>
+      </section>
+
+      <section class="admin-place-management" aria-label="地点管理カード">
+        <div class="section-title-row">
+          <div>
+            <p class="eyebrow">Place Categories</p>
+            <h2>地点管理</h2>
+          </div>
+          <button class="text-button" type="button">カテゴリ設定</button>
+        </div>
+        <div id="adminCategoryCards" class="admin-category-grid"></div>
+      </section>
+    </main>
+
+    <aside class="admin-detail-panel" aria-label="詳細パネル">
+      <section class="admin-detail-card">
+        <div class="section-title-row">
+          <div>
+            <p class="eyebrow">Emergency Logs</p>
+            <h2>緊急連絡ログ</h2>
+          </div>
+          <span class="small-badge">Demo</span>
+        </div>
+        <div class="admin-log-table-wrap">
+          <table class="admin-log-table">
+            <thead>
+              <tr>
+                <th>時刻</th>
+                <th>種別</th>
+                <th>場所</th>
+                <th>状態</th>
+                <th>担当者</th>
+              </tr>
+            </thead>
+            <tbody id="adminEmergencyLogBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="admin-detail-card">
+        <p class="eyebrow">Selected Area</p>
+        <h2>川湯温泉街付近</h2>
+        <p class="muted">水場・宿泊・交通の確認優先度が高いエリアです。ヒグマ注意と通信状況をガイド画面にも共有しています。</p>
+        <div class="admin-focus-list">
+          <div><span>公開地点</span><strong id="adminPlaceCount">--</strong></div>
+          <div><span>注意情報</span><strong id="adminWarningCount">--</strong></div>
+          <div><span>対応中ログ</span><strong id="adminOpenLogCount">--</strong></div>
+        </div>
+      </section>
+    </aside>
+  </div>
+  <script src="js/data.js"></script>
+  <script src="js/pages.js"></script>
+</body>
+</html>

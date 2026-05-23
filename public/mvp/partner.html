@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Trail Insurance Intelligence | 道東トレイル</title>
+  <meta name="description" content="北海道東トレイルのコース・天候・行動・補給環境に基づく旅行保険会社向けリスク査定ダッシュボード" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body data-page="partner">
+  <div class="insurance-shell">
+    <header class="insurance-header">
+      <div>
+        <p class="eyebrow">Trail Insurance Intelligence</p>
+        <h1>Trail Insurance Intelligence</h1>
+        <p class="subtitle">コース別の事故リスク・行動リスク・保険料倍率を可視化</p>
+      </div>
+    </header>
+
+    <section class="insurance-kpi-grid" aria-label="リスクKPI">
+      <article class="insurance-kpi"><span>月間トレイル利用者数</span><strong>4,820</strong><em>前月比 +8.4%</em></article>
+      <article class="insurance-kpi"><span>SOS/事故報告件数</span><strong>38</strong><em>うち救護 11件</em></article>
+      <article class="insurance-kpi"><span>事故発生率</span><strong>0.79%</strong><em>推定デモ値</em></article>
+      <article class="insurance-kpi"><span>高リスク区間数</span><strong>6</strong><em>全12区間中</em></article>
+      <article class="insurance-kpi"><span>平均リスクスコア</span><strong id="insuranceAverageScore">72</strong><em>100点満点</em></article>
+      <article class="insurance-kpi"><span>推奨保険料倍率</span><strong id="insuranceAverageMultiplier">1.34x</strong><em>標準料率比</em></article>
+    </section>
+
+    <main class="insurance-layout">
+      <section class="insurance-main">
+        <section class="insurance-card">
+          <div class="section-title-row">
+            <div>
+              <p class="eyebrow">Course Underwriting</p>
+              <h2>コース別リスク査定</h2>
+            </div>
+            <button class="text-button" id="monthlyRiskReportButton" type="button">月次リスクレポート出力</button>
+          </div>
+          <div class="insurance-table-wrap">
+            <table class="insurance-risk-table">
+              <thead>
+                <tr>
+                  <th>コース名</th>
+                  <th>距離</th>
+                  <th>補給空白距離</th>
+                  <th>事故/緊急通報件数</th>
+                  <th>主なリスク</th>
+                  <th>リスクスコア</th>
+                  <th>推奨保険料倍率</th>
+                </tr>
+              </thead>
+              <tbody id="courseRiskTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="insurance-card">
+          <div class="section-title-row">
+            <div>
+              <p class="eyebrow">Incident Map Demo</p>
+              <h2>事故・SOS発生地点マップ</h2>
+            </div>
+            <span class="small-badge">API連携なし</span>
+          </div>
+          <div class="insurance-risk-map" aria-label="事故地点、補給地点、高リスク区間のデモ表示">
+            <div class="risk-map-route"></div>
+            <span class="risk-point incident p1">SOS</span>
+            <span class="risk-point supply p2">補</span>
+            <span class="risk-point high p3">高</span>
+            <span class="risk-point incident p4">傷</span>
+            <span class="risk-point supply p5">補</span>
+            <span class="risk-zone z1">補給空白 16km</span>
+            <span class="risk-zone z2">ヒグマ注意</span>
+          </div>
+        </section>
+
+        <section class="insurance-card">
+          <div class="section-title-row">
+            <div>
+              <p class="eyebrow">Behavior Analytics</p>
+              <h2>けがをした人の行動分析</h2>
+            </div>
+          </div>
+          <div class="behavior-grid">
+            <article><strong>15km+</strong><span>補給地点を経由せずに15km以上歩行</span></article>
+            <article><strong>28℃+</strong><span>気温28℃以上で山間部を通過</span></article>
+            <article><strong>Night</strong><span>日没後に行動</span></article>
+            <article><strong>No Guide</strong><span>ガイドなしで高リスク区間を通過</span></article>
+            <article class="good"><strong>-31%</strong><span>自販機・コンビニ経由ありの場合は事故率が低下</span></article>
+          </div>
+        </section>
+      </section>
+
+      <aside class="insurance-side">
+        <section class="insurance-card">
+          <div class="section-title-row">
+            <div>
+              <p class="eyebrow">Premium Simulator</p>
+              <h2>保険料シミュレーター</h2>
+            </div>
+          </div>
+          <form class="premium-simulator" id="premiumSimulator">
+            <label>コース選択
+              <select id="simCourse">
+                <option value="wetland">釧路湿原ショート</option>
+                <option value="kawayu">川湯温泉 - 神の子池</option>
+                <option value="shiretoko">知床斜里 - 羅臼</option>
+                <option value="akan">阿寒・摩周連絡</option>
+              </select>
+            </label>
+            <label>最高気温
+              <input id="simTemp" type="number" min="-10" max="40" value="28" />
+            </label>
+            <label>雨量
+              <input id="simRain" type="number" min="0" max="120" value="12" />
+            </label>
+            <div class="sim-checks">
+              <label><input id="simNight" type="checkbox" /> 日没後行動あり</label>
+              <label><input id="simGuide" type="checkbox" checked /> ガイド同行あり</label>
+              <label><input id="simSupply" type="checkbox" checked /> 自販機/コンビニ経由あり</label>
+              <label><input id="simBear" type="checkbox" checked /> ヒグマ注意エリア通過あり</label>
+            </div>
+          </form>
+          <div class="sim-output">
+            <div><span>リスクスコア</span><strong id="simRiskScore">--</strong></div>
+            <div><span>リスク等級</span><strong id="simRiskGrade">--</strong></div>
+            <div><span>推奨保険料倍率</span><strong id="simMultiplier">--</strong></div>
+          </div>
+          <div class="underwriting-note">
+            <strong id="simCondition">引受条件を計算中</strong>
+            <p id="simMemo">条件を変更するとデモ結果が更新されます。</p>
+          </div>
+        </section>
+
+        <section class="insurance-card">
+          <p class="eyebrow">Risk Factor Ranking</p>
+          <h2>リスク要因ランキング</h2>
+          <ol class="risk-ranking">
+            <li><span>補給空白距離</span><strong>影響度 92</strong></li>
+            <li><span>最高気温</span><strong>影響度 86</strong></li>
+            <li><span>日没後行動</span><strong>影響度 80</strong></li>
+            <li><span>雨・ぬかるみ</span><strong>影響度 73</strong></li>
+            <li><span>ヒグマ注意エリア</span><strong>影響度 68</strong></li>
+            <li><span>ガイドなし</span><strong>影響度 64</strong></li>
+          </ol>
+        </section>
+
+        <section class="insurance-card">
+          <p class="eyebrow">Underwriting Rules</p>
+          <h2>引受条件・割引条件</h2>
+          <div class="condition-columns">
+            <div>
+              <h3>割増条件</h3>
+              <ul>
+                <li>補給空白15km以上</li>
+                <li>最高気温30℃以上</li>
+                <li>日没後行動あり</li>
+                <li>ヒグマ注意エリア通過</li>
+                <li>ガイドなしで高難度区間を通過</li>
+              </ul>
+            </div>
+            <div>
+              <h3>割引条件</h3>
+              <ul>
+                <li>ガイド同行</li>
+                <li>推奨ルート利用</li>
+                <li>自販機・コンビニ経由</li>
+                <li>出発前チェック完了</li>
+                <li>位置共有ON</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+      </aside>
+    </main>
+  </div>
+  <script src="js/data.js"></script>
+  <script src="js/pages.js"></script>
+</body>
+</html>

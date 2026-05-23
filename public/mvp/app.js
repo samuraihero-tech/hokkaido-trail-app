@@ -306,6 +306,65 @@
     document.getElementById("drawerBackdrop").hidden = true;
   }
 
+  function initEmergencySupport() {
+    const openButton = document.getElementById("emergencySupportButton");
+    const sheet = document.getElementById("emergencySheet");
+    const backdrop = document.getElementById("emergencyBackdrop");
+    const closeButton = document.getElementById("closeEmergencySheet");
+    const locationStatus = document.getElementById("locationShareStatus");
+    const status = document.getElementById("emergencyStatus");
+    const situationButtons = document.querySelectorAll("[data-emergency-action]");
+    const channelButtons = document.querySelectorAll("[data-support-channel]");
+    let selectedSituation = "";
+
+    if (!openButton || !sheet || !backdrop || !closeButton || !status) return;
+
+    function openSheet() {
+      backdrop.hidden = false;
+      sheet.classList.add("open");
+      sheet.setAttribute("aria-hidden", "false");
+      if (locationStatus) {
+        locationStatus.textContent = "共有済み";
+        locationStatus.classList.add("shared");
+      }
+      status.textContent = "現在地を共有しました。状況を選択してください。";
+    }
+
+    function closeSheet() {
+      sheet.classList.remove("open");
+      sheet.setAttribute("aria-hidden", "true");
+      backdrop.hidden = true;
+    }
+
+    openButton.addEventListener("click", openSheet);
+    closeButton.addEventListener("click", closeSheet);
+    backdrop.addEventListener("click", closeSheet);
+
+    situationButtons.forEach((button) => {
+      button.setAttribute("aria-pressed", "false");
+      button.addEventListener("click", () => {
+        selectedSituation = button.dataset.emergencyAction || "";
+        situationButtons.forEach((item) => item.setAttribute("aria-pressed", "false"));
+        button.setAttribute("aria-pressed", "true");
+        status.textContent = `状況「${selectedSituation}」を選択しました。連絡先を選んでください。`;
+      });
+    });
+
+    channelButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        channelButtons.forEach((item) => item.classList.remove("active"));
+        button.classList.add("active");
+        const channel = button.dataset.supportChannel || "";
+        const situation = selectedSituation || "未選択";
+        status.textContent = `${channel} に、現在地と状況「${situation}」を共有するデモ状態にしました。実通信は行っていません。`;
+      });
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeSheet();
+    });
+  }
+
   function fitRoute() {
     const bounds = L.latLngBounds(data.route);
     map.fitBounds(bounds, { padding: [70, 70] });
@@ -336,17 +395,30 @@
   }
 
   function bindEvents() {
-    document.getElementById("openScoreButton").addEventListener("click", openScoreDetail);
-    document.getElementById("closeDrawer").addEventListener("click", closeDrawer);
-    document.getElementById("drawerBackdrop").addEventListener("click", closeDrawer);
-    document.getElementById("adminButton").addEventListener("click", openAdmin);
-    document.getElementById("fitRouteButton").addEventListener("click", fitRoute);
-    document.getElementById("resetLayers").addEventListener("click", () => {
+    const openScoreButton = document.getElementById("openScoreButton");
+    const closeDrawerButton = document.getElementById("closeDrawer");
+    const drawerBackdrop = document.getElementById("drawerBackdrop");
+    const adminButton = document.getElementById("adminButton");
+    const fitRouteButton = document.getElementById("fitRouteButton");
+    const resetLayersButton = document.getElementById("resetLayers");
+    const searchInput = document.getElementById("searchInput");
+
+    if (openScoreButton) openScoreButton.addEventListener("click", openScoreDetail);
+    if (closeDrawerButton) closeDrawerButton.addEventListener("click", closeDrawer);
+    if (drawerBackdrop) drawerBackdrop.addEventListener("click", closeDrawer);
+    if (adminButton) adminButton.addEventListener("click", () => {
+      const href = adminButton.dataset.href;
+      if (href) window.location.href = href;
+      else openAdmin();
+    });
+    if (fitRouteButton) fitRouteButton.addEventListener("click", fitRoute);
+    if (resetLayersButton) resetLayersButton.addEventListener("click", () => {
       activeLayers = new Set(data.layerDefinitions.filter((l) => l.enabled).map((l) => l.key));
       renderLayerControls();
       updateOverlayLayers();
     });
-    document.getElementById("searchInput").addEventListener("input", (event) => filterPlaces(event.target.value));
+    if (searchInput) searchInput.addEventListener("input", (event) => filterPlaces(event.target.value));
+    initEmergencySupport();
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") closeDrawer();
     });
