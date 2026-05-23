@@ -3,18 +3,27 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>観光協会向けPC管理ダッシュボード | 道東トレイル</title>
-  <meta name="description" content="道東トレイルの地点管理・CSV取込・緊急連絡ログを確認する観光協会向けPC管理ダッシュボード" />
+  <title>道東トレイル運営ダッシュボード | 観光協会向け</title>
+  <meta name="description" content="緊急対応・地点管理・利用分析を一元化する観光協会向け道東トレイル運営ダッシュボード" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body data-page="admin">
-  <div class="admin-dashboard-shell">
-    <aside class="admin-sidebar" aria-label="管理メニュー">
+  <div class="admin-dashboard-shell admin-ops-shell">
+    <aside class="admin-sidebar" aria-label="運営メニュー">
       <div class="admin-brand">
-        <p class="eyebrow">Trail Admin</p>
-        <h1>観光協会管理</h1>
-        <p>道東トレイルの地点・安全・連絡ログを管理</p>
+        <p class="eyebrow">Trail Operations</p>
+        <h1>道東トレイル運営</h1>
+        <p>緊急対応・地点管理・利用分析を一元化</p>
       </div>
+
+      <nav class="admin-main-tabs" aria-label="管理タブ">
+        <button type="button" data-admin-tab="emergency" aria-pressed="true">緊急対応</button>
+        <button type="button" data-admin-tab="places">地点管理</button>
+        <button type="button" data-admin-tab="facilities">設備候補</button>
+        <button type="button" data-admin-tab="analytics">利用分析</button>
+        <button type="button" data-admin-tab="exports">データ出力</button>
+      </nav>
+
       <section class="admin-side-card">
         <p class="eyebrow">CSV Import</p>
         <h2>CSVインポート状況</h2>
@@ -38,76 +47,201 @@
       </section>
     </aside>
 
-    <main class="admin-map-column" aria-label="地図と地点管理">
-      <header class="admin-work-header">
+    <main class="admin-map-column" aria-label="運営ダッシュボード">
+      <header class="admin-work-header admin-ops-header">
         <div>
           <p class="eyebrow">Hokkaido East Trail Intelligence</p>
-          <h2>地点管理ダッシュボード</h2>
-          <p class="subtitle">自販機・水場・危険情報など、歩行者に公開する地点データを俯瞰します。</p>
+          <h2>道東トレイル運営ダッシュボード</h2>
+          <p class="subtitle">緊急対応・地点管理・利用分析を一元化する観光協会向け管理画面</p>
         </div>
         <div class="admin-header-actions">
-          <button class="secondary-button" type="button">CSV再取込</button>
-          <button class="primary-button" type="button">公開更新</button>
+          <button class="secondary-button" type="button" data-admin-export="emergency">緊急ログCSV</button>
+          <button class="primary-button" type="button" id="adminPublishButton">公開更新</button>
         </div>
       </header>
 
-      <section class="admin-demo-map" aria-label="デモ地図">
-        <div class="map-route-line"></div>
-        <span class="map-pin pin-a">水</span>
-        <span class="map-pin pin-b">厠</span>
-        <span class="map-pin pin-c">!</span>
-        <span class="map-pin pin-d">宿</span>
+      <section class="admin-emergency-summary" aria-label="緊急対応サマリー">
+        <article><span>未対応SOS</span><strong>3件</strong><em>最優先</em></article>
+        <article><span>対応中</span><strong>2件</strong><em>現地確認中</em></article>
+        <article><span>位置未更新ユーザー</span><strong>4名</strong><em>15分以上</em></article>
+        <article><span>ガイド要支援</span><strong>1件</strong><em>参加者遅れ</em></article>
+        <article><span>本日の高リスク通知</span><strong>5件</strong><em>熊・悪天候</em></article>
+      </section>
+
+      <section class="admin-demo-map admin-ops-map" aria-label="道東トレイル運営マップ">
+        <div class="map-route-line busy"></div>
+        <div class="map-route-line supply-gap"></div>
+        <span class="map-zone bear-zone">ヒグマ注意</span>
+        <button class="map-pin pin-a emergency" type="button" data-admin-area="kawayu">SOS</button>
+        <button class="map-pin pin-b facility" type="button" data-admin-area="toya">設</button>
+        <button class="map-pin pin-c warning" type="button" data-admin-area="rausu">熊</button>
+        <button class="map-pin pin-d busy" type="button" data-admin-area="train2">多</button>
         <div class="admin-map-legend">
-          <strong>道東トレイル広域デモ</strong>
-          <span>釧路 - 川湯 - 知床斜里 - 羅臼</span>
+          <strong>選択中エリアの運営状況</strong>
+          <span>緊急発生地点 / 設備候補 / 利用者が多いルート / 補給空白区間</span>
         </div>
       </section>
 
-      <section class="admin-place-management" aria-label="地点管理カード">
+      <section class="admin-tab-panel active" data-admin-panel="emergency" aria-label="緊急対応">
         <div class="section-title-row">
           <div>
-            <p class="eyebrow">Place Categories</p>
-            <h2>地点管理</h2>
+            <p class="eyebrow">Emergency Response</p>
+            <h2>緊急対応パネル</h2>
           </div>
-          <button class="text-button" type="button">カテゴリ設定</button>
+          <span class="small-badge alert">未対応 3件</span>
         </div>
-        <div id="adminCategoryCards" class="admin-category-grid"></div>
-      </section>
-    </main>
-
-    <aside class="admin-detail-panel" aria-label="詳細パネル">
-      <section class="admin-detail-card">
-        <div class="section-title-row">
-          <div>
-            <p class="eyebrow">Emergency Logs</p>
-            <h2>緊急連絡ログ</h2>
-          </div>
-          <span class="small-badge">Demo</span>
-        </div>
-        <div class="admin-log-table-wrap">
-          <table class="admin-log-table">
+        <div class="admin-emergency-table-wrap">
+          <table class="admin-emergency-table">
             <thead>
               <tr>
-                <th>時刻</th>
+                <th>発生時刻</th>
                 <th>種別</th>
+                <th>発信者</th>
                 <th>場所</th>
+                <th>選択中ルート</th>
                 <th>状態</th>
-                <th>担当者</th>
+                <th>対応者</th>
+                <th>最終更新</th>
+                <th>操作</th>
               </tr>
             </thead>
             <tbody id="adminEmergencyLogBody"></tbody>
           </table>
         </div>
+        <p class="admin-demo-status" id="adminEmergencyStatus">緊急ログを選択すると対応状態を更新できます。</p>
+      </section>
+
+      <section class="admin-tab-panel" data-admin-panel="places" aria-label="地点管理">
+        <div class="section-title-row">
+          <div>
+            <p class="eyebrow">Place Management</p>
+            <h2>地点管理ダッシュボード</h2>
+          </div>
+          <button class="primary-button compact-button" id="newPlaceButton" type="button">新規地点登録</button>
+        </div>
+        <div id="adminCategoryCards" class="admin-category-grid admin-category-grid-expanded"></div>
+        <form class="admin-place-form" id="adminPlaceForm" hidden>
+          <h3>地点登録フォーム</h3>
+          <div class="admin-form-grid">
+            <label>地点名<input name="name" value="川湯温泉 北側休憩候補" /></label>
+            <label>カテゴリ<select name="category"><option>休憩所</option><option>自販機</option><option>トイレ</option><option>水場</option><option>案内看板</option></select></label>
+            <label>緯度<input name="lat" value="43.6388" /></label>
+            <label>経度<input name="lng" value="144.4382" /></label>
+            <label>確認状況<select name="verified"><option>未確認</option><option>確認済み</option></select></label>
+            <label>優先度<select name="priority"><option>高</option><option>中</option><option>低</option></select></label>
+            <label>担当者<input name="owner" value="川湯VC" /></label>
+            <label>Google Maps URL<input name="maps" value="https://maps.google.com/?q=43.6388,144.4382" /></label>
+            <label class="wide">説明<textarea name="description">休憩・水分補給の導線として確認したい候補地点。</textarea></label>
+            <label class="wide">注意メモ<textarea name="note">冬季閉鎖・通信状況・熊注意看板の有無を確認。</textarea></label>
+            <label class="wide">登録理由<textarea name="reason">利用者が多く、次の補給地点まで距離があるため。</textarea></label>
+          </div>
+          <button class="primary-button" type="submit">地点候補として登録</button>
+        </form>
+        <p class="admin-demo-status" id="adminPlaceStatus">地点カテゴリを確認し、必要に応じて候補登録できます。</p>
+      </section>
+
+      <section class="admin-tab-panel" data-admin-panel="facilities" aria-label="設備候補">
+        <div class="section-title-row">
+          <div>
+            <p class="eyebrow">Facility Planning</p>
+            <h2>設備候補</h2>
+          </div>
+          <span class="small-badge planning">整備検討</span>
+        </div>
+        <div class="facility-candidate-grid" id="facilityCandidateGrid"></div>
+      </section>
+
+      <section class="admin-tab-panel" data-admin-panel="analytics" aria-label="利用分析">
+        <div class="section-title-row">
+          <div>
+            <p class="eyebrow">Usage Analytics</p>
+            <h2>利用分析ダッシュボード</h2>
+          </div>
+          <span class="small-badge">今月</span>
+        </div>
+        <div class="admin-analytics-kpis">
+          <article><span>本日の利用者数</span><strong>86人</strong></article>
+          <article><span>今月の利用者数</span><strong>1,014人</strong></article>
+          <article><span>人気ルート</span><strong>Trail & Train②</strong></article>
+          <article><span>平均歩行時間</span><strong>6.2h</strong></article>
+          <article><span>予定より遅延</span><strong>18%</strong></article>
+          <article><span>途中離脱率</span><strong>5.8%</strong></article>
+          <article><span>SOS発生率</span><strong>1.7%</strong></article>
+          <article><span>補給空白区間</span><strong>6区間</strong></article>
+        </div>
+        <div class="admin-analytics-layout">
+          <div class="admin-route-table-wrap">
+            <table class="admin-route-table">
+              <thead>
+                <tr>
+                  <th>ルート名</th>
+                  <th>利用者数</th>
+                  <th>平均歩行時間</th>
+                  <th>SOS件数</th>
+                  <th>途中離脱率</th>
+                  <th>主な滞在地点</th>
+                  <th>要整備ポイント</th>
+                </tr>
+              </thead>
+              <tbody id="adminRouteAnalyticsBody"></tbody>
+            </table>
+          </div>
+          <div class="admin-insight-grid" id="adminInsightGrid"></div>
+        </div>
+      </section>
+
+      <section class="admin-tab-panel" data-admin-panel="exports" aria-label="データ出力">
+        <div class="section-title-row">
+          <div>
+            <p class="eyebrow">Data Export</p>
+            <h2>データ出力</h2>
+          </div>
+          <span class="small-badge">CSV</span>
+        </div>
+        <div class="admin-export-grid">
+          <button type="button" data-admin-export="usage">利用状況CSVをダウンロード</button>
+          <button type="button" data-admin-export="routes">ルート別集計CSVをダウンロード</button>
+          <button type="button" data-admin-export="emergency">緊急対応ログCSVをダウンロード</button>
+          <button type="button" data-admin-export="places">地点一覧CSVをダウンロード</button>
+          <button type="button" data-admin-export="facilities">設備候補CSVをダウンロード</button>
+        </div>
+        <p class="admin-demo-status" id="adminExportStatus">出力したいデータを選択してください。</p>
+      </section>
+    </main>
+
+    <aside class="admin-detail-panel" aria-label="選択中エリア詳細">
+      <section class="admin-detail-card selected-area-card">
+        <div class="section-title-row">
+          <div>
+            <p class="eyebrow">Selected Area</p>
+            <h2 id="adminAreaName">川湯温泉街付近</h2>
+          </div>
+          <span class="small-badge">Demo</span>
+        </div>
+        <div class="selected-area-metrics">
+          <div><span>利用者数</span><strong id="adminAreaUsers">420人/月</strong></div>
+          <div><span>平均歩行時間</span><strong id="adminAreaDuration">5.1時間</strong></div>
+          <div><span>SOS件数</span><strong id="adminAreaSos">2件</strong></div>
+          <div><span>未確認地点</span><strong id="adminAreaUnverified">14件</strong></div>
+          <div><span>設備候補</span><strong id="adminAreaFacilities">3件</strong></div>
+        </div>
+        <article class="selected-area-note">
+          <strong>主な課題</strong>
+          <p id="adminAreaIssue">水場・宿泊・交通の確認優先度が高い</p>
+        </article>
+        <article class="selected-area-note action">
+          <strong>推奨アクション</strong>
+          <p id="adminAreaAction">休憩所候補の現地確認、自販機候補の確認、ヒグマ注意情報の更新</p>
+        </article>
       </section>
 
       <section class="admin-detail-card">
-        <p class="eyebrow">Selected Area</p>
-        <h2>川湯温泉街付近</h2>
-        <p class="muted">水場・宿泊・交通の確認優先度が高いエリアです。ヒグマ注意と通信状況をガイド画面にも共有しています。</p>
-        <div class="admin-focus-list">
-          <div><span>公開地点</span><strong id="adminPlaceCount">--</strong></div>
-          <div><span>注意情報</span><strong id="adminWarningCount">--</strong></div>
-          <div><span>対応中ログ</span><strong id="adminOpenLogCount">--</strong></div>
+        <p class="eyebrow">Operations Feed</p>
+        <h2>本日の運営メモ</h2>
+        <div class="admin-feed">
+          <article><strong>09:42</strong><span>ガイド画面から倒木報告。参加者へ注意喚起済み。</span></article>
+          <article><strong>10:18</strong><span>川湯温泉〜神の子池で位置未更新ユーザーを検知。</span></article>
+          <article><strong>11:05</strong><span>遠矢駅周辺の自販機候補を現地確認タスクに追加。</span></article>
         </div>
       </section>
     </aside>

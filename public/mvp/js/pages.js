@@ -60,22 +60,28 @@
     const root = document.getElementById("adminCategoryCards");
     if (!root) return;
     const categories = [
-      { key: "vending", label: "自販機", icon: "自", review: "補給導線" },
-      { key: "convenience", label: "コンビニ", icon: "コ", review: "営業時間確認" },
-      { key: "toilet", label: "トイレ", icon: "厠", review: "季節閉鎖確認" },
-      { key: "accommodation", label: "宿泊", icon: "宿", review: "予約導線" },
-      { key: "food", label: "飲食", icon: "食", review: "営業日確認" },
-      { key: "water", label: "水場", icon: "水", review: "飲用可否確認" },
-      { key: "parking", label: "駐車場", icon: "P", review: "送迎候補" },
-      { key: "danger", label: "危険/注意", icon: "!", review: "即時共有" }
+      { key: "vending", label: "自販機", icon: "自", review: "補給導線", last: "2026/05/21", priority: "中", needs: 6 },
+      { key: "convenience", label: "コンビニ", icon: "コ", review: "営業時間確認", last: "2026/05/20", priority: "中", needs: 4 },
+      { key: "toilet", label: "トイレ", icon: "厠", review: "季節閉鎖確認", last: "2026/05/18", priority: "高", needs: 11 },
+      { key: "accommodation", label: "宿泊", icon: "宿", review: "予約導線", last: "2026/05/17", priority: "中", needs: 7 },
+      { key: "food", label: "飲食", icon: "食", review: "営業日確認", last: "2026/05/21", priority: "低", needs: 5 },
+      { key: "water", label: "水場", icon: "水", review: "飲用可否確認", last: "2026/05/16", priority: "高", needs: 13 },
+      { key: "parking", label: "駐車場", icon: "P", review: "送迎候補", last: "2026/05/19", priority: "中", needs: 3 },
+      { key: "danger", label: "危険/注意", icon: "!", review: "即時共有", last: "2026/05/22", priority: "高", needs: 9 },
+      { key: "rest", label: "休憩所", icon: "休", review: "設置候補", last: "2026/05/15", priority: "高", needs: 8 },
+      { key: "sign", label: "案内看板", icon: "案", review: "分岐案内", last: "2026/05/14", priority: "中", needs: 6 }
     ];
     root.innerHTML = categories.map((category) => {
       const count = category.key === "danger"
         ? places.filter((place) => ["danger", "bear"].includes(place.layer)).length
-        : countByLayer(category.key);
+        : category.key === "rest" || category.key === "sign"
+          ? category.needs + 4
+          : countByLayer(category.key);
       const unverified = category.key === "danger"
         ? places.filter((place) => ["danger", "bear"].includes(place.layer) && !place.verified).length
-        : places.filter((place) => (place.layer === category.key || place.category === category.key) && !place.verified).length;
+        : category.key === "rest" || category.key === "sign"
+          ? Math.max(2, Math.round(category.needs / 2))
+          : places.filter((place) => (place.layer === category.key || place.category === category.key) && !place.verified).length;
       return `
         <article class="admin-category-card">
           <div class="admin-category-icon">${escapeHtml(category.icon)}</div>
@@ -84,7 +90,7 @@
             <span>${escapeHtml(category.review)}</span>
           </div>
           <em>${count}件</em>
-          <small>未確認 ${unverified}件</small>
+          <small>未確認 ${unverified}件 / 要確認 ${category.needs}件 / 最終更新 ${escapeHtml(category.last)} / 優先度 ${escapeHtml(category.priority)}</small>
         </article>
       `;
     }).join("");
@@ -93,22 +99,230 @@
   function renderAdminEmergencyLogs() {
     const root = document.getElementById("adminEmergencyLogBody");
     if (!root) return;
-    const assignees = ["阿寒摩周観光協会", "川湯VC", "現地ガイドA", "羅臼連絡員"];
-    const typeLabels = {
-      medical: "体調・救護",
-      navigation: "道迷い",
-      network: "通信",
-      support: "相談"
-    };
-    root.innerHTML = sosReports.map((report, index) => `
+    const logs = [
+      { time: "10:18", type: "通信途絶", sender: "ユーザー", location: "川湯温泉〜神の子池", route: "MKT", status: "未対応", owner: "未割当", updated: "2分前" },
+      { time: "09:52", type: "体調不良", sender: "ガイド", location: "斜里岳山麓", route: "Trail & Train③", status: "対応中", owner: "川湯VC", updated: "8分前" },
+      { time: "09:31", type: "ヒグマ", sender: "ユーザー", location: "羅臼方面", route: "UKT", status: "ガイド確認中", owner: "羅臼連絡員", updated: "14分前" },
+      { time: "08:48", type: "道迷い", sender: "ユーザー", location: "屈斜路カルデラ", route: "KCT", status: "対応中", owner: "阿寒摩周観光協会", updated: "31分前" },
+      { time: "08:12", type: "悪天候", sender: "ガイド", location: "遠矢駅周辺", route: "Trail & Train②", status: "解決済み", owner: "釧路担当", updated: "52分前" }
+    ];
+    root.innerHTML = logs.map((report, index) => `
       <tr>
         <td>${escapeHtml(report.time)}</td>
-        <td>${escapeHtml(typeLabels[report.type] || report.type || "連絡")}</td>
+        <td>${escapeHtml(report.type)}</td>
+        <td>${escapeHtml(report.sender)}</td>
         <td>${escapeHtml(report.location)}</td>
-        <td><span class="log-status ${escapeHtml(report.priority)}">${escapeHtml(report.status)}</span></td>
-        <td>${escapeHtml(assignees[index % assignees.length])}</td>
+        <td>${escapeHtml(report.route)}</td>
+        <td><span class="log-status ${report.status === "未対応" ? "high" : report.status === "解決済み" ? "" : "medium"}">${escapeHtml(report.status)}</span></td>
+        <td>${escapeHtml(report.owner)}</td>
+        <td>${escapeHtml(report.updated)}</td>
+        <td>
+          <div class="admin-log-actions">
+            <button type="button" data-admin-log-action="対応開始" data-log-index="${index}">対応開始</button>
+            <button type="button" data-admin-log-action="ガイドへ連絡" data-log-index="${index}">ガイドへ連絡</button>
+            <button type="button" data-admin-log-action="ユーザーへ連絡" data-log-index="${index}">ユーザーへ連絡</button>
+            <button type="button" data-admin-log-action="位置を地図で確認" data-log-index="${index}">位置確認</button>
+            <button type="button" data-admin-log-action="解決済みにする" data-log-index="${index}">解決済み</button>
+          </div>
+        </td>
       </tr>
     `).join("");
+  }
+
+  function renderAdminFacilities() {
+    const root = document.getElementById("facilityCandidateGrid");
+    if (!root) return;
+    const candidates = [
+      { area: "川湯温泉〜神の子池", issue: "水場・トイレ空白が長い", action: "簡易トイレ・休憩所", priority: "高", data: "補給空白16.2km / SOS 11件", status: "設置候補" },
+      { area: "遠矢駅周辺", issue: "自販機候補はあるが未確認", action: "現地確認", priority: "中", data: "Trail & Train②利用420人/月", status: "現地確認中" },
+      { area: "斜里岳山麓", issue: "利用者が多いが休憩所が少ない", action: "ベンチ・案内看板", priority: "高", data: "途中離脱12% / 滞在長め", status: "協議中" },
+      { area: "羅臼方面", issue: "ヒグマ注意報告が多い", action: "注意看板", priority: "高", data: "ヒグマ報告5件 / 高リスク通知", status: "未確認" }
+    ];
+    root.innerHTML = candidates.map((item) => `
+      <article class="facility-candidate-card">
+        <div>
+          <p class="card-label">${escapeHtml(item.status)}</p>
+          <h3>${escapeHtml(item.area)}</h3>
+        </div>
+        <dl>
+          <div><dt>課題</dt><dd>${escapeHtml(item.issue)}</dd></div>
+          <div><dt>推奨整備</dt><dd>${escapeHtml(item.action)}</dd></div>
+          <div><dt>根拠データ</dt><dd>${escapeHtml(item.data)}</dd></div>
+        </dl>
+        <span class="priority-badge ${item.priority === "高" ? "high" : "medium"}">優先度 ${escapeHtml(item.priority)}</span>
+      </article>
+    `).join("");
+  }
+
+  function renderAdminAnalytics() {
+    const routeRoot = document.getElementById("adminRouteAnalyticsBody");
+    const insightRoot = document.getElementById("adminInsightGrid");
+    const routes = [
+      { name: "MKT", users: "312人", duration: "2泊3日", sos: "6件", exit: "4%", stay: "川湯温泉・摩周湖", need: "トイレ・水場" },
+      { name: "KCT", users: "184人", duration: "7.8時間", sos: "4件", exit: "7%", stay: "屈斜路湖畔", need: "休憩所" },
+      { name: "UKT", users: "98人", duration: "8.2時間", sos: "5件", exit: "12%", stay: "神の子池・裏摩周", need: "ヒグマ注意看板" },
+      { name: "Trail & Train②", users: "420人", duration: "5.1時間", sos: "2件", exit: "3%", stay: "遠矢駅・硫黄山", need: "自販機" }
+    ];
+    if (routeRoot) {
+      routeRoot.innerHTML = routes.map((route) => `
+        <tr>
+          <td><strong>${escapeHtml(route.name)}</strong></td>
+          <td>${escapeHtml(route.users)}</td>
+          <td>${escapeHtml(route.duration)}</td>
+          <td>${escapeHtml(route.sos)}</td>
+          <td>${escapeHtml(route.exit)}</td>
+          <td>${escapeHtml(route.stay)}</td>
+          <td>${escapeHtml(route.need)}</td>
+        </tr>
+      `).join("");
+    }
+    const insights = [
+      { area: "広域", issue: "トイレ空白が8km以上の区間が3箇所あります", action: "仮設・協力施設の候補調査", priority: "高", data: "補給空白区間6 / 離脱率5.8%" },
+      { area: "補給未経由ユーザー", issue: "自販機・コンビニを経由しない利用者のSOS率が高い", action: "推奨補給導線の表示強化", priority: "高", data: "SOS率 +1.9pt" },
+      { area: "川湯温泉〜神の子池", issue: "休憩所ニーズが高い", action: "休憩所候補の現地確認", priority: "高", data: "問い合わせ11件 / 滞在長め" },
+      { area: "Trail & Train②", issue: "利用者が多く飲食・土産導線の整備余地あり", action: "駅周辺事業者との連携", priority: "中", data: "420人/月 / 離脱率3%" },
+      { area: "羅臼方面", issue: "ヒグマ注意報告が多い", action: "注意看板の設置優先度を上げる", priority: "高", data: "高リスク通知5件" }
+    ];
+    if (insightRoot) {
+      insightRoot.innerHTML = insights.map((item) => `
+        <article class="admin-insight-card">
+          <span>${escapeHtml(item.area)}</span>
+          <strong>${escapeHtml(item.issue)}</strong>
+          <p>${escapeHtml(item.action)}</p>
+          <em>優先度 ${escapeHtml(item.priority)} / ${escapeHtml(item.data)}</em>
+        </article>
+      `).join("");
+    }
+  }
+
+  function initAdminInteractions() {
+    const tabs = document.querySelectorAll("[data-admin-tab]");
+    const panels = document.querySelectorAll("[data-admin-panel]");
+    const emergencyStatus = document.getElementById("adminEmergencyStatus");
+    const placeStatus = document.getElementById("adminPlaceStatus");
+    const exportStatus = document.getElementById("adminExportStatus");
+    const placeForm = document.getElementById("adminPlaceForm");
+    const newPlaceButton = document.getElementById("newPlaceButton");
+    const publishButton = document.getElementById("adminPublishButton");
+    const areas = {
+      kawayu: {
+        name: "川湯温泉街付近",
+        users: "420人/月",
+        duration: "5.1時間",
+        sos: "2件",
+        unverified: "14件",
+        facilities: "3件",
+        issue: "水場・宿泊・交通の確認優先度が高い",
+        action: "休憩所候補の現地確認、自販機候補の確認、ヒグマ注意情報の更新"
+      },
+      toya: {
+        name: "遠矢駅周辺",
+        users: "286人/月",
+        duration: "4.6時間",
+        sos: "1件",
+        unverified: "9件",
+        facilities: "4件",
+        issue: "自販機候補はあるが営業状況と導線が未確認",
+        action: "駅周辺事業者への確認、Trail & Train導線の案内看板候補化"
+      },
+      rausu: {
+        name: "羅臼方面",
+        users: "146人/月",
+        duration: "8.4時間",
+        sos: "5件",
+        unverified: "18件",
+        facilities: "5件",
+        issue: "ヒグマ注意報告と悪天候時の離脱判断が多い",
+        action: "注意看板の設置検討、ガイド向け警戒通知の強化"
+      },
+      train2: {
+        name: "Trail & Train② 火山＆森コース",
+        users: "420人/月",
+        duration: "5.1時間",
+        sos: "2件",
+        unverified: "7件",
+        facilities: "2件",
+        issue: "利用者が多く、飲食・土産導線の整備余地がある",
+        action: "飲食店・土産店との連携、自販機候補の現地確認"
+      }
+    };
+
+    function switchTab(tabName) {
+      tabs.forEach((button) => button.setAttribute("aria-pressed", button.dataset.adminTab === tabName ? "true" : "false"));
+      panels.forEach((panel) => panel.classList.toggle("active", panel.dataset.adminPanel === tabName));
+    }
+
+    function updateArea(area) {
+      setText("adminAreaName", area.name);
+      setText("adminAreaUsers", area.users);
+      setText("adminAreaDuration", area.duration);
+      setText("adminAreaSos", area.sos);
+      setText("adminAreaUnverified", area.unverified);
+      setText("adminAreaFacilities", area.facilities);
+      setText("adminAreaIssue", area.issue);
+      setText("adminAreaAction", area.action);
+    }
+
+    function downloadCsv(kind) {
+      const rows = {
+        usage: [["date", "users", "delayed"], ["2026-05-24", "86", "18%"]],
+        routes: [["route", "users", "avg_time", "sos"], ["MKT", "312", "2泊3日", "6"]],
+        emergency: [["time", "type", "location", "status"], ["10:18", "通信途絶", "川湯温泉〜神の子池", "未対応"]],
+        places: [["name", "category", "verified"], ["川湯温泉水場", "水場", "確認済み"]],
+        facilities: [["area", "recommendation", "priority"], ["川湯温泉〜神の子池", "簡易トイレ・休憩所", "高"]]
+      };
+      const csv = (rows[kind] || rows.usage).map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")).join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `trail-${kind}-demo.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+      if (exportStatus) exportStatus.textContent = `${kind} CSVを出力しました。`;
+    }
+
+    tabs.forEach((button) => {
+      button.addEventListener("click", () => switchTab(button.dataset.adminTab));
+    });
+
+    document.querySelectorAll("[data-admin-area]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const area = areas[button.dataset.adminArea];
+        if (area) updateArea(area);
+      });
+    });
+
+    document.querySelectorAll("[data-admin-log-action]").forEach((button) => {
+      button.addEventListener("click", () => {
+        if (emergencyStatus) emergencyStatus.textContent = `ログ${Number(button.dataset.logIndex) + 1}: 「${button.dataset.adminLogAction}」で対応状態を更新しました。実通信は行っていません。`;
+        if (button.dataset.adminLogAction === "位置を地図で確認") updateArea(areas.kawayu);
+      });
+    });
+
+    if (newPlaceButton && placeForm) {
+      newPlaceButton.addEventListener("click", () => {
+        placeForm.hidden = !placeForm.hidden;
+        if (!placeForm.hidden) placeForm.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+
+    if (placeForm) {
+      placeForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        if (placeStatus) placeStatus.textContent = "地点候補として登録しました。現地確認タスクに追加するデモ状態です。";
+      });
+    }
+
+    document.querySelectorAll("[data-admin-export]").forEach((button) => {
+      button.addEventListener("click", () => downloadCsv(button.dataset.adminExport));
+    });
+
+    if (publishButton) {
+      publishButton.addEventListener("click", () => {
+        publishButton.textContent = "公開更新を予約しました";
+      });
+    }
   }
 
   function initAdmin() {
@@ -125,6 +339,9 @@
     setText("adminOpenLogCount", openLogs);
     renderAdminCategoryCards();
     renderAdminEmergencyLogs();
+    renderAdminFacilities();
+    renderAdminAnalytics();
+    initAdminInteractions();
   }
 
   function initGuide() {
