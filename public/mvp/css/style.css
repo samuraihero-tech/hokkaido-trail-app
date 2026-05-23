@@ -1969,8 +1969,11 @@ h1 { font-size: clamp(26px, 4vw, 44px); line-height: 1.05; margin-bottom: 8px; l
   min-height: 100vh;
   padding: 24px;
 }
+.insurance-ops-shell {
+  overflow-x: hidden;
+}
 .insurance-header {
-  max-width: 1680px;
+  max-width: 1760px;
   margin: 0 auto 18px;
   display: flex;
   justify-content: space-between;
@@ -1987,7 +1990,7 @@ h1 { font-size: clamp(26px, 4vw, 44px); line-height: 1.05; margin-bottom: 8px; l
   align-self: center;
 }
 .insurance-kpi-grid {
-  max-width: 1680px;
+  max-width: 1760px;
   margin: 0 auto 18px;
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -2033,11 +2036,22 @@ h1 { font-size: clamp(26px, 4vw, 44px); line-height: 1.05; margin-bottom: 8px; l
   gap: 18px;
 }
 .insurance-dashboard-layout {
-  max-width: 1680px;
+  max-width: 1760px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 420px;
+  grid-template-columns: minmax(0, 1fr) 360px;
   gap: 18px;
+  align-items: start;
+}
+.insurance-dashboard-layout > .insurance-main {
+  min-width: 0;
+}
+.insurance-dashboard-layout > .insurance-side {
+  min-width: 0;
+  position: sticky;
+  top: 18px;
+  max-height: calc(100vh - 36px);
+  overflow: auto;
 }
 .insurance-main,
 .insurance-side {
@@ -2046,7 +2060,7 @@ h1 { font-size: clamp(26px, 4vw, 44px); line-height: 1.05; margin-bottom: 8px; l
   gap: 18px;
 }
 .insurance-tabs {
-  max-width: 1680px;
+  max-width: 1760px;
   margin: 0 auto 18px;
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -2090,7 +2104,7 @@ h1 { font-size: clamp(26px, 4vw, 44px); line-height: 1.05; margin-bottom: 8px; l
   font-size: 13px;
 }
 .insurance-risk-table.wide {
-  min-width: 1280px;
+  min-width: 1120px;
 }
 .insurance-risk-table th,
 .insurance-risk-table td {
@@ -2185,13 +2199,7 @@ h1 { font-size: clamp(26px, 4vw, 44px); line-height: 1.05; margin-bottom: 8px; l
 }
 .risk-zone.z1 { left: 35%; top: 68%; }
 .risk-zone.z2 { right: 8%; top: 14%; color: var(--danger); }
-.insurance-claims-map .risk-map-route.high {
-  left: 38%;
-  top: 48%;
-  width: 38%;
-  background: var(--warning);
-  transform: rotate(-30deg);
-}
+.insurance-claims-map .risk-map-route { display: none; }
 .behavior-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -2445,6 +2453,9 @@ h1 { font-size: clamp(26px, 4vw, 44px); line-height: 1.05; margin-bottom: 8px; l
   font-size: 17px;
   line-height: 1.35;
 }
+.insurance-dashboard-layout .insurance-side .condition-columns {
+  grid-template-columns: 1fr;
+}
 .risk-ranking {
   list-style: none;
   margin: 0;
@@ -2465,7 +2476,7 @@ h1 { font-size: clamp(26px, 4vw, 44px); line-height: 1.05; margin-bottom: 8px; l
 .risk-ranking strong { color: var(--muted); font-size: 12px; }
 .condition-columns {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 .condition-columns div {
