@@ -186,6 +186,7 @@
 
   function renderChecklist() {
     const root = document.getElementById("checklist");
+    if (!root) return;
     root.innerHTML = data.checklist.map((item, index) => `
       <li>
         <label>
