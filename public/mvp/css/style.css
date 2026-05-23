@@ -1068,7 +1068,6 @@ h1 { font-size: clamp(26px, 4vw, 44px); line-height: 1.05; margin-bottom: 8px; l
 }
 .admin-map-water,
 .admin-map-park,
-.admin-map-road,
 .admin-map-town {
   position: absolute;
 }
@@ -1098,37 +1097,6 @@ h1 { font-size: clamp(26px, 4vw, 44px); line-height: 1.05; margin-bottom: 8px; l
   top: 64%;
   width: 22%;
   height: 38%;
-}
-.admin-map-road {
-  z-index: 1;
-  height: 8px;
-  border-radius: 999px;
-  background: rgba(255,253,248,.92);
-  box-shadow: 0 0 0 2px rgba(128,143,132,.24);
-}
-.admin-map-road.road-a {
-  left: 6%;
-  top: 61%;
-  width: 88%;
-  transform: rotate(-15deg);
-}
-.admin-map-road.road-b {
-  left: 18%;
-  top: 43%;
-  width: 52%;
-  transform: rotate(14deg);
-}
-.admin-map-road.road-c {
-  left: 48%;
-  top: 25%;
-  width: 36%;
-  transform: rotate(-48deg);
-}
-.admin-map-road.road-d {
-  left: 28%;
-  top: 72%;
-  width: 42%;
-  transform: rotate(-30deg);
 }
 .admin-map-town {
   z-index: 3;
