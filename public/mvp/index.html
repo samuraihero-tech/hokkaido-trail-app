@@ -39,11 +39,6 @@
             <div class="score-ring" aria-hidden="true"><span id="scoreRingValue">--</span></div>
           </div>
           <p id="comfortReason" class="reason-text">天気・地形・補給地点をもとに推定しています。</p>
-          <div class="mini-indicators">
-            <div><span>暑さ</span><strong id="heatRisk">-</strong></div>
-            <div><span>雨</span><strong id="rainRisk">-</strong></div>
-            <div><span>地形</span><strong id="terrainLoad">-</strong></div>
-          </div>
           <button id="openScoreButton" class="primary-button" type="button">なぜこのスコア？</button>
         </section>
 
@@ -67,36 +62,18 @@
         </section>
 
         <section class="panel-card route-card">
-          <p class="eyebrow">Imported Data Demo</p>
-          <h2>釧路 〜 川湯 〜 知床斜里 〜 羅臼</h2>
+          <p class="eyebrow">Trail Area</p>
+          <h2>川湯温泉 〜 神の子池 〜 清里</h2>
           <div class="route-stats">
             <div><span>地点数</span><strong>625件</strong></div>
             <div><span>初期表示</span><strong>主要レイヤー</strong></div>
-            <div><span>対象</span><strong>道東広域</strong></div>
+            <div><span>表示ルート</span><strong>陸上デモ</strong></div>
           </div>
           <div class="route-alert warning">
             <strong>注意</strong>
             <p>CSV由来の広域地点データを表示しています。水場・危険情報は現地確認前提で、食事・宿泊は件数が多いため初期表示をオフにしています。</p>
           </div>
           <button id="fitRouteButton" class="secondary-button" type="button">トレイル広域を表示</button>
-        </section>
-
-
-
-        <section class="panel-card official-map-card">
-          <div class="section-title-row">
-            <div>
-              <p class="eyebrow">Official Route Maps</p>
-              <h2>公式ルート・注意情報</h2>
-            </div>
-            <span class="small-badge">KML連携</span>
-          </div>
-          <p class="muted compact">アップロードされた公式Google My MapsのKMLを参照マップとして組み込みました。</p>
-          <div id="officialMapList" class="official-map-list"></div>
-          <div class="route-alert note">
-            <strong>次ステップ</strong>
-            <p>今回のKMLはNetworkLink型のため、正確な線・面の座標本体はGoogle My Maps側にあります。完全にLeaflet上へ重ねるには、NetworkLinkではないKML/KMZまたはGPXを書き出して取り込みます。</p>
-          </div>
         </section>
 
         <section class="panel-card checklist-card">

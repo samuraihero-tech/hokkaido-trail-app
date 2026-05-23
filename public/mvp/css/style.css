@@ -130,8 +130,23 @@ h1 { font-size: clamp(26px, 4vw, 44px); line-height: 1.05; margin-bottom: 8px; l
 .route-alert.warning { background: #fff3df; color: #6d3d0c; border: 1px solid rgba(170,95,29,.18); }
 .route-alert p { margin: 5px 0 0; font-size: 13px; line-height: 1.5; }
 .checklist { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
-.checklist li { display: flex; gap: 9px; align-items: flex-start; color: var(--muted); font-size: 14px; line-height: 1.48; }
-.checklist li::before { content: "✓"; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--mint); color: var(--forest); font-weight: 800; flex: 0 0 auto; }
+.checklist li { color: var(--muted); font-size: 14px; line-height: 1.48; }
+.checklist label {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 9px;
+  align-items: flex-start;
+  cursor: pointer;
+}
+.checklist input {
+  width: 21px;
+  height: 21px;
+  margin: 1px 0 0;
+  accent-color: var(--forest);
+}
+.checklist span {
+  display: block;
+}
 .primary-button, .secondary-button, .ghost-button, .text-button {
   border: 0; border-radius: 999px; font-weight: 800; transition: transform .15s ease, opacity .15s ease;
 }
@@ -1298,14 +1313,13 @@ h1 { font-size: clamp(26px, 4vw, 44px); line-height: 1.05; margin-bottom: 8px; l
 /* Emergency support bottom sheet */
 .emergency-fab {
   position: fixed;
-  left: 50%;
+  right: 16px;
   bottom: max(18px, env(safe-area-inset-bottom));
-  transform: translateX(-50%);
   z-index: 820;
-  width: min(360px, calc(100vw - 32px));
+  width: min(168px, calc(100vw - 32px));
   border: 0;
-  border-radius: 999px;
-  padding: 13px 18px;
+  border-radius: 22px;
+  padding: 11px 13px;
   background: var(--danger);
   color: #fff;
   box-shadow: 0 18px 46px rgba(181, 56, 46, .32);
@@ -1313,9 +1327,9 @@ h1 { font-size: clamp(26px, 4vw, 44px); line-height: 1.05; margin-bottom: 8px; l
   gap: 2px;
   text-align: left;
 }
-.emergency-fab:hover { transform: translate(-50%, -1px); }
-.emergency-fab span { font-size: 16px; font-weight: 900; }
-.emergency-fab small { color: rgba(255,255,255,.82); font-size: 11px; font-weight: 700; }
+.emergency-fab:hover { transform: translateY(-1px); }
+.emergency-fab span { font-size: 13px; font-weight: 900; }
+.emergency-fab small { color: rgba(255,255,255,.82); font-size: 10px; font-weight: 700; }
 .emergency-backdrop {
   position: fixed;
   inset: 0;
@@ -1473,5 +1487,11 @@ h1 { font-size: clamp(26px, 4vw, 44px); line-height: 1.05; margin-bottom: 8px; l
   .location-share-card { align-items: flex-start; flex-direction: column; }
 }
 @media (max-width: 740px) {
-  body[data-page="user"] .comfort-card { bottom: 96px; }
+  body[data-page="user"] .comfort-card { bottom: 12px; padding-right: 112px; }
+  body[data-page="user"] .comfort-card .primary-button { padding: 11px 12px; }
+  body[data-page="user"] .score-ring {
+    width: 66px;
+    height: 66px;
+    font-size: 18px;
+  }
 }

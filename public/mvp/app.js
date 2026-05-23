@@ -172,7 +172,14 @@
 
   function renderChecklist() {
     const root = document.getElementById("checklist");
-    root.innerHTML = data.checklist.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+    root.innerHTML = data.checklist.map((item, index) => `
+      <li>
+        <label>
+          <input type="checkbox" ${index < 2 ? "checked" : ""} />
+          <span>${escapeHtml(item)}</span>
+        </label>
+      </li>
+    `).join("");
   }
 
   async function getWeather() {
@@ -212,9 +219,9 @@
     document.getElementById("scoreRingValue").textContent = currentComfort.score;
     document.getElementById("comfortStatus").textContent = currentComfort.status;
     document.getElementById("comfortReason").textContent = currentComfort.reason;
-    document.getElementById("heatRisk").textContent = currentComfort.heatRisk;
-    document.getElementById("rainRisk").textContent = currentComfort.rainRisk;
-    document.getElementById("terrainLoad").textContent = currentComfort.terrainLoad;
+    if (document.getElementById("heatRisk")) document.getElementById("heatRisk").textContent = currentComfort.heatRisk;
+    if (document.getElementById("rainRisk")) document.getElementById("rainRisk").textContent = currentComfort.rainRisk;
+    if (document.getElementById("terrainLoad")) document.getElementById("terrainLoad").textContent = currentComfort.terrainLoad;
 
     const ring = document.querySelector(".score-ring");
     const deg = Math.round(currentComfort.score * 3.6);
