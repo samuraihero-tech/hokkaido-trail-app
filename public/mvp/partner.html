@@ -3,132 +3,246 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Trail Insurance Intelligence | 道東トレイル</title>
-  <meta name="description" content="北海道東トレイルのコース・天候・行動・補給環境に基づく旅行保険会社向けリスク査定ダッシュボード" />
+  <title>トレイル保険リスク査定ダッシュボード | 道東トレイル</title>
+  <meta name="description" content="ルート・天候・行動履歴から、旅行保険会社の保険料設計と事故対応を支援するデモダッシュボード" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body data-page="partner">
-  <div class="insurance-shell">
+  <div class="insurance-shell insurance-ops-shell">
     <header class="insurance-header">
       <div>
-        <p class="eyebrow">Trail Insurance Intelligence</p>
-        <h1>Trail Insurance Intelligence</h1>
-        <p class="subtitle">コース別の事故リスク・行動リスク・保険料倍率を可視化</p>
+        <p class="eyebrow">Trail Insurance Risk Assessment</p>
+        <h1>トレイル保険リスク査定ダッシュボード</h1>
+        <p class="subtitle">ルート・天候・行動履歴から、保険料設計と事故対応を支援</p>
       </div>
+      <button class="primary-button compact-button" type="button" data-insurance-export="monthly">月次リスクレポートPDFを出力</button>
     </header>
 
-    <section class="insurance-kpi-grid" aria-label="リスクKPI">
-      <article class="insurance-kpi"><span>月間トレイル利用者数</span><strong>4,820</strong><em>前月比 +8.4%</em></article>
-      <article class="insurance-kpi"><span>SOS/事故報告件数</span><strong>38</strong><em>うち救護 11件</em></article>
-      <article class="insurance-kpi"><span>事故発生率</span><strong>0.79%</strong><em>推定デモ値</em></article>
-      <article class="insurance-kpi"><span>高リスク区間数</span><strong>6</strong><em>全12区間中</em></article>
-      <article class="insurance-kpi"><span>平均リスクスコア</span><strong id="insuranceAverageScore">72</strong><em>100点満点</em></article>
-      <article class="insurance-kpi"><span>推奨保険料倍率</span><strong id="insuranceAverageMultiplier">1.34x</strong><em>標準料率比</em></article>
+    <section class="insurance-kpi-grid insurance-kpi-grid-7" aria-label="保険リスクKPI">
+      <article class="insurance-kpi"><span>月間加入/利用者数</span><strong>4,820</strong><em>デモ集計</em></article>
+      <article class="insurance-kpi"><span>事故・SOS件数</span><strong>38</strong><em>救護 11件</em></article>
+      <article class="insurance-kpi"><span>事故発生率</span><strong>0.79%</strong><em>推定値</em></article>
+      <article class="insurance-kpi"><span>高リスクルート数</span><strong>6</strong><em>全12区間中</em></article>
+      <article class="insurance-kpi"><span>平均リスクスコア</span><strong id="insuranceAverageScore">70</strong><em>100点満点</em></article>
+      <article class="insurance-kpi"><span>平均保険料倍率</span><strong id="insuranceAverageMultiplier">1.37x</strong><em>標準料率比</em></article>
+      <article class="insurance-kpi"><span>保険金査定中</span><strong>7件</strong><em>要確認 3件</em></article>
     </section>
 
-    <main class="insurance-layout">
+    <nav class="insurance-tabs" aria-label="保険ダッシュボードタブ">
+      <button type="button" data-insurance-tab="risk" aria-pressed="true">リスク査定</button>
+      <button type="button" data-insurance-tab="simulator">保険料シミュレーター</button>
+      <button type="button" data-insurance-tab="weather">天候×事故分析</button>
+      <button type="button" data-insurance-tab="behavior">行動履歴分析</button>
+      <button type="button" data-insurance-tab="claims">事故対応・保険金査定</button>
+      <button type="button" data-insurance-tab="reports">レポート出力</button>
+    </nav>
+
+    <main class="insurance-dashboard-layout">
       <section class="insurance-main">
-        <section class="insurance-card">
-          <div class="section-title-row">
-            <div>
-              <p class="eyebrow">Course Underwriting</p>
-              <h2>コース別リスク査定</h2>
+        <section class="insurance-tab-panel active" data-insurance-panel="risk">
+          <div class="insurance-card">
+            <div class="section-title-row">
+              <div>
+                <p class="eyebrow">Route Risk Assessment</p>
+                <h2>ルート別リスク査定</h2>
+              </div>
+              <span class="small-badge">デモスコア</span>
             </div>
-            <button class="text-button" id="monthlyRiskReportButton" type="button">月次リスクレポート出力</button>
+            <div class="insurance-table-wrap">
+              <table class="insurance-risk-table wide">
+                <thead>
+                  <tr>
+                    <th>ルート名</th>
+                    <th>距離</th>
+                    <th>平均歩行時間</th>
+                    <th>補給空白距離</th>
+                    <th>離脱困難区間</th>
+                    <th>携帯圏外想定</th>
+                    <th>事故/SOS件数</th>
+                    <th>主なリスク</th>
+                    <th>リスクスコア</th>
+                    <th>推奨保険料倍率</th>
+                    <th>推奨引受条件</th>
+                  </tr>
+                </thead>
+                <tbody id="courseRiskTableBody"></tbody>
+              </table>
+            </div>
           </div>
-          <div class="insurance-table-wrap">
-            <table class="insurance-risk-table">
-              <thead>
-                <tr>
-                  <th>コース名</th>
-                  <th>距離</th>
-                  <th>補給空白距離</th>
-                  <th>事故/緊急通報件数</th>
-                  <th>主なリスク</th>
-                  <th>リスクスコア</th>
-                  <th>推奨保険料倍率</th>
-                </tr>
-              </thead>
-              <tbody id="courseRiskTableBody"></tbody>
-            </table>
+
+          <div class="insurance-card">
+            <div class="section-title-row">
+              <div>
+                <p class="eyebrow">Incident Map Demo</p>
+                <h2>事故・SOS発生地点マップ</h2>
+              </div>
+              <span class="small-badge">API連携なし</span>
+            </div>
+            <div class="insurance-risk-map insurance-claims-map" aria-label="事故地点と高リスク区間のデモ表示">
+              <div class="risk-map-route"></div>
+              <div class="risk-map-route high"></div>
+              <span class="risk-point incident p1" data-claim-point="USER-2048">事故</span>
+              <span class="risk-point sos p2" data-claim-point="USER-1192">SOS</span>
+              <span class="risk-point high p3" data-claim-point="USER-3310">高</span>
+              <span class="risk-point access p4" data-claim-point="USER-0874">救</span>
+              <span class="risk-point supply p5">補</span>
+              <span class="risk-zone z1">補給空白 16km</span>
+              <span class="risk-zone z2">事故多発区間</span>
+            </div>
+            <p class="insurance-demo-status" id="insuranceMapStatus">地図上の事故/SOS地点を選択すると、査定用の概要を表示します。</p>
           </div>
         </section>
 
-        <section class="insurance-card">
-          <div class="section-title-row">
-            <div>
-              <p class="eyebrow">Incident Map Demo</p>
-              <h2>事故・SOS発生地点マップ</h2>
+        <section class="insurance-tab-panel" data-insurance-panel="simulator">
+          <div class="insurance-card">
+            <div class="section-title-row">
+              <div>
+                <p class="eyebrow">Premium Simulator</p>
+                <h2>保険料シミュレーター</h2>
+              </div>
             </div>
-            <span class="small-badge">API連携なし</span>
-          </div>
-          <div class="insurance-risk-map" aria-label="事故地点、補給地点、高リスク区間のデモ表示">
-            <div class="risk-map-route"></div>
-            <span class="risk-point incident p1">SOS</span>
-            <span class="risk-point supply p2">補</span>
-            <span class="risk-point high p3">高</span>
-            <span class="risk-point incident p4">傷</span>
-            <span class="risk-point supply p5">補</span>
-            <span class="risk-zone z1">補給空白 16km</span>
-            <span class="risk-zone z2">ヒグマ注意</span>
+            <form class="premium-simulator premium-simulator-expanded" id="premiumSimulator">
+              <label>ルート<select id="simCourse"></select></label>
+              <label>日付<input id="simDate" type="date" value="2026-07-18" /></label>
+              <label>最高気温<input id="simTemp" type="number" min="-10" max="40" value="30" /></label>
+              <label>雨量<input id="simRain" type="number" min="0" max="120" value="8" /></label>
+              <label>風速<input id="simWind" type="number" min="0" max="40" value="9" /></label>
+              <label>補給空白距離<input id="simSupplyGap" type="number" min="0" max="30" value="16" /></label>
+              <div class="sim-checks expanded">
+                <label><input id="simNight" type="checkbox" /> 日没後行動あり</label>
+                <label><input id="simGuide" type="checkbox" checked /> ガイド同行あり</label>
+                <label><input id="simSupply" type="checkbox" checked /> 自販機/コンビニ経由あり</label>
+                <label><input id="simLocation" type="checkbox" checked /> 位置共有ON</label>
+                <label><input id="simBear" type="checkbox" checked /> ヒグマ注意エリア通過</label>
+                <label><input id="simSolo" type="checkbox" /> 単独行動</label>
+              </div>
+            </form>
+            <div class="sim-output sim-output-expanded">
+              <div><span>リスクスコア</span><strong id="simRiskScore">--</strong></div>
+              <div><span>事故発生推定率</span><strong id="simIncidentRate">--</strong></div>
+              <div><span>推奨保険料倍率</span><strong id="simMultiplier">--</strong></div>
+              <div><span>引受可否</span><strong id="simRiskGrade">--</strong></div>
+            </div>
+            <div class="underwriting-note">
+              <strong id="simCondition">引受条件を計算中</strong>
+              <p id="simMemo">条件を変更するとデモ結果が更新されます。</p>
+              <p id="simDiscountMemo">割引理由を計算中です。</p>
+            </div>
           </div>
         </section>
 
-        <section class="insurance-card">
-          <div class="section-title-row">
-            <div>
-              <p class="eyebrow">Behavior Analytics</p>
-              <h2>けがをした人の行動分析</h2>
+        <section class="insurance-tab-panel" data-insurance-panel="weather">
+          <div class="insurance-card">
+            <div class="section-title-row">
+              <div>
+                <p class="eyebrow">Weather Risk</p>
+                <h2>天候×事故分析</h2>
+              </div>
             </div>
+            <div class="weather-risk-grid" id="weatherRiskGrid"></div>
           </div>
-          <div class="behavior-grid">
-            <article><strong>15km+</strong><span>補給地点を経由せずに15km以上歩行</span></article>
-            <article><strong>28℃+</strong><span>気温28℃以上で山間部を通過</span></article>
-            <article><strong>Night</strong><span>日没後に行動</span></article>
-            <article><strong>No Guide</strong><span>ガイドなしで高リスク区間を通過</span></article>
-            <article class="good"><strong>-31%</strong><span>自販機・コンビニ経由ありの場合は事故率が低下</span></article>
+        </section>
+
+        <section class="insurance-tab-panel" data-insurance-panel="behavior">
+          <div class="insurance-card">
+            <div class="section-title-row">
+              <div>
+                <p class="eyebrow">Behavior Risk</p>
+                <h2>行動履歴分析</h2>
+              </div>
+            </div>
+            <div class="behavior-risk-grid" id="behaviorRiskGrid"></div>
+          </div>
+          <div class="insurance-card">
+            <p class="eyebrow">Pseudonymous Claim Trail</p>
+            <h2>個別行動履歴カード</h2>
+            <article class="claim-history-card">
+              <div>
+                <span>加入者ID</span><strong>USER-2048</strong>
+              </div>
+              <div>
+                <span>対象ルート</span><strong>川湯温泉〜神の子池</strong>
+              </div>
+              <div>
+                <span>出発 / 事故報告</span><strong>09:12 / 13:42</strong>
+              </div>
+              <div>
+                <span>事故地点</span><strong>神の子池手前 1.8km</strong>
+              </div>
+              <ul>
+                <li>11:20 補給地点を通過せず</li>
+                <li>12:45 推奨ルートから80m逸脱</li>
+                <li>13:10 位置共有が10分停止</li>
+                <li>13:42 転倒・足首負傷を報告</li>
+              </ul>
+              <p>査定メモ：推奨ルート内に復帰後の事故。故意の危険行動ではなく、天候・足元悪化の影響が大きい可能性。</p>
+            </article>
+            <p class="privacy-note">行動履歴データは、本人同意を得た上で、事故対応・安全改善・保険料設計の参考情報として利用する想定です。デモ上は仮名IDで表示しており、氏名・電話番号などの個人情報は表示していません。</p>
+          </div>
+        </section>
+
+        <section class="insurance-tab-panel" data-insurance-panel="claims">
+          <div class="insurance-card">
+            <div class="section-title-row">
+              <div>
+                <p class="eyebrow">Claims Operations</p>
+                <h2>事故対応・保険金査定</h2>
+              </div>
+              <span class="small-badge alert">査定中 7件</span>
+            </div>
+            <div class="insurance-table-wrap">
+              <table class="insurance-risk-table claims-table">
+                <thead>
+                  <tr>
+                    <th>発生時刻</th>
+                    <th>加入者ID</th>
+                    <th>ルート</th>
+                    <th>事故種別</th>
+                    <th>事故地点</th>
+                    <th>直前行動</th>
+                    <th>天候</th>
+                    <th>状態</th>
+                    <th>査定担当</th>
+                    <th>アクション</th>
+                  </tr>
+                </thead>
+                <tbody id="claimLogBody"></tbody>
+              </table>
+            </div>
+            <p class="insurance-demo-status" id="claimActionStatus">事故対応ログのアクションを選択してください。</p>
+          </div>
+        </section>
+
+        <section class="insurance-tab-panel" data-insurance-panel="reports">
+          <div class="insurance-card">
+            <div class="section-title-row">
+              <div>
+                <p class="eyebrow">Report Export</p>
+                <h2>レポート出力</h2>
+              </div>
+            </div>
+            <div class="insurance-export-grid">
+              <button type="button" data-insurance-export="route-risk">ルート別リスクCSVをダウンロード</button>
+              <button type="button" data-insurance-export="weather">天候別事故率CSVをダウンロード</button>
+              <button type="button" data-insurance-export="behavior">行動履歴分析CSVをダウンロード</button>
+              <button type="button" data-insurance-export="claims">事故対応ログCSVをダウンロード</button>
+              <button type="button" data-insurance-export="monthly">月次リスクレポートPDFを出力</button>
+            </div>
+            <p class="insurance-demo-status" id="insuranceExportStatus">出力したいレポートを選択してください。</p>
           </div>
         </section>
       </section>
 
       <aside class="insurance-side">
         <section class="insurance-card">
-          <div class="section-title-row">
-            <div>
-              <p class="eyebrow">Premium Simulator</p>
-              <h2>保険料シミュレーター</h2>
-            </div>
-          </div>
-          <form class="premium-simulator" id="premiumSimulator">
-            <label>コース選択
-              <select id="simCourse">
-                <option value="wetland">釧路湿原ショート</option>
-                <option value="kawayu">川湯温泉 - 神の子池</option>
-                <option value="shiretoko">知床斜里 - 羅臼</option>
-                <option value="akan">阿寒・摩周連絡</option>
-              </select>
-            </label>
-            <label>最高気温
-              <input id="simTemp" type="number" min="-10" max="40" value="28" />
-            </label>
-            <label>雨量
-              <input id="simRain" type="number" min="0" max="120" value="12" />
-            </label>
-            <div class="sim-checks">
-              <label><input id="simNight" type="checkbox" /> 日没後行動あり</label>
-              <label><input id="simGuide" type="checkbox" checked /> ガイド同行あり</label>
-              <label><input id="simSupply" type="checkbox" checked /> 自販機/コンビニ経由あり</label>
-              <label><input id="simBear" type="checkbox" checked /> ヒグマ注意エリア通過あり</label>
-            </div>
-          </form>
-          <div class="sim-output">
-            <div><span>リスクスコア</span><strong id="simRiskScore">--</strong></div>
-            <div><span>リスク等級</span><strong id="simRiskGrade">--</strong></div>
-            <div><span>推奨保険料倍率</span><strong id="simMultiplier">--</strong></div>
-          </div>
-          <div class="underwriting-note">
-            <strong id="simCondition">引受条件を計算中</strong>
-            <p id="simMemo">条件を変更するとデモ結果が更新されます。</p>
+          <p class="eyebrow">Selected Claim</p>
+          <h2>査定詳細</h2>
+          <div class="claim-detail-panel" id="claimDetailPanel">
+            <strong>USER-2048 / 転倒・足首負傷</strong>
+            <span>ルート：川湯温泉〜神の子池</span>
+            <span>天候：雨量8mm / 足元悪化</span>
+            <span>直前行動：補給未経由、80m逸脱後に復帰</span>
+            <span>査定状態：事実確認中</span>
           </div>
         </section>
 
@@ -154,8 +268,11 @@
               <ul>
                 <li>補給空白15km以上</li>
                 <li>最高気温30℃以上</li>
+                <li>雨量5mm以上</li>
+                <li>風速10m/s以上</li>
                 <li>日没後行動あり</li>
                 <li>ヒグマ注意エリア通過</li>
+                <li>位置共有OFF</li>
                 <li>ガイドなしで高難度区間を通過</li>
               </ul>
             </div>
@@ -167,6 +284,8 @@
                 <li>自販機・コンビニ経由</li>
                 <li>出発前チェック完了</li>
                 <li>位置共有ON</li>
+                <li>オフライン地図準備</li>
+                <li>グループ行動</li>
               </ul>
             </div>
           </div>

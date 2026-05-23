@@ -1982,12 +1982,19 @@ h1 { font-size: clamp(26px, 4vw, 44px); line-height: 1.05; margin-bottom: 8px; l
   margin-bottom: 8px;
   letter-spacing: 0;
 }
+.insurance-header .compact-button {
+  width: auto;
+  align-self: center;
+}
 .insurance-kpi-grid {
   max-width: 1680px;
   margin: 0 auto 18px;
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 12px;
+}
+.insurance-kpi-grid-7 {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
 }
 .insurance-kpi,
 .insurance-card {
@@ -2025,11 +2032,46 @@ h1 { font-size: clamp(26px, 4vw, 44px); line-height: 1.05; margin-bottom: 8px; l
   grid-template-columns: minmax(0, 1fr) 430px;
   gap: 18px;
 }
+.insurance-dashboard-layout {
+  max-width: 1680px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 420px;
+  gap: 18px;
+}
 .insurance-main,
 .insurance-side {
   display: grid;
   align-content: start;
   gap: 18px;
+}
+.insurance-tabs {
+  max-width: 1680px;
+  margin: 0 auto 18px;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+}
+.insurance-tabs button {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  min-height: 50px;
+  padding: 11px 12px;
+  background: rgba(255,253,248,.82);
+  color: var(--forest);
+  font-weight: 900;
+}
+.insurance-tabs button[aria-pressed="true"] {
+  background: var(--forest);
+  color: #fff;
+  border-color: var(--forest);
+}
+.insurance-tab-panel {
+  display: none;
+  gap: 18px;
+}
+.insurance-tab-panel.active {
+  display: grid;
 }
 .insurance-card {
   padding: 20px;
@@ -2046,6 +2088,9 @@ h1 { font-size: clamp(26px, 4vw, 44px); line-height: 1.05; margin-bottom: 8px; l
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
+}
+.insurance-risk-table.wide {
+  min-width: 1280px;
 }
 .insurance-risk-table th,
 .insurance-risk-table td {
@@ -2119,8 +2164,10 @@ h1 { font-size: clamp(26px, 4vw, 44px); line-height: 1.05; margin-bottom: 8px; l
   box-shadow: 0 12px 26px rgba(18,56,40,.22);
 }
 .risk-point.incident { background: var(--danger); }
+.risk-point.sos { background: #b5382e; }
 .risk-point.supply { background: #3177a3; }
 .risk-point.high { background: var(--warning); }
+.risk-point.access { background: #4e6497; }
 .risk-point.p1 { left: 18%; top: 52%; }
 .risk-point.p2 { left: 34%; top: 48%; }
 .risk-point.p3 { left: 52%; top: 34%; }
@@ -2138,6 +2185,13 @@ h1 { font-size: clamp(26px, 4vw, 44px); line-height: 1.05; margin-bottom: 8px; l
 }
 .risk-zone.z1 { left: 35%; top: 68%; }
 .risk-zone.z2 { right: 8%; top: 14%; color: var(--danger); }
+.insurance-claims-map .risk-map-route.high {
+  left: 38%;
+  top: 48%;
+  width: 38%;
+  background: var(--warning);
+  transform: rotate(-30deg);
+}
 .behavior-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -2167,6 +2221,9 @@ h1 { font-size: clamp(26px, 4vw, 44px); line-height: 1.05; margin-bottom: 8px; l
   display: grid;
   gap: 12px;
 }
+.premium-simulator-expanded {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
 .premium-simulator label {
   display: grid;
   gap: 6px;
@@ -2187,6 +2244,10 @@ h1 { font-size: clamp(26px, 4vw, 44px); line-height: 1.05; margin-bottom: 8px; l
   display: grid;
   gap: 8px;
 }
+.sim-checks.expanded {
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
 .sim-checks label {
   grid-template-columns: 20px 1fr;
   align-items: center;
@@ -2205,6 +2266,9 @@ h1 { font-size: clamp(26px, 4vw, 44px); line-height: 1.05; margin-bottom: 8px; l
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   margin: 14px 0;
+}
+.sim-output-expanded {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 .sim-output div {
   border-radius: 16px;
@@ -2233,6 +2297,153 @@ h1 { font-size: clamp(26px, 4vw, 44px); line-height: 1.05; margin-bottom: 8px; l
   color: var(--muted);
   font-size: 13px;
   line-height: 1.5;
+}
+.weather-risk-grid,
+.behavior-risk-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.weather-risk-card,
+.behavior-risk-card,
+.claim-history-card,
+.claim-detail-panel {
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 16px;
+  background: rgba(255,255,255,.68);
+}
+.weather-risk-card strong,
+.behavior-risk-card strong {
+  display: block;
+  color: var(--forest);
+  font-size: 17px;
+  line-height: 1.35;
+  margin-bottom: 10px;
+}
+.weather-risk-card span,
+.behavior-risk-card span,
+.claim-detail-panel span,
+.claim-history-card span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+.weather-risk-card em,
+.behavior-risk-card em {
+  display: inline-flex;
+  border-radius: 999px;
+  padding: 6px 10px;
+  margin: 10px 0;
+  background: #fff3df;
+  color: var(--warning);
+  font-style: normal;
+  font-weight: 900;
+}
+.weather-risk-card p,
+.behavior-risk-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.behavior-risk-card.high {
+  background: #ffe8e4;
+  border-color: rgba(181,56,46,.18);
+}
+.behavior-risk-card.high em {
+  background: var(--danger);
+  color: #fff;
+}
+.behavior-risk-card.caution {
+  background: #fff8f0;
+}
+.behavior-risk-card.good {
+  background: rgba(220,238,226,.76);
+}
+.behavior-risk-card.good em {
+  background: var(--forest);
+  color: #fff;
+}
+.claim-history-card {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+.claim-history-card strong {
+  display: block;
+  color: var(--forest);
+  font-size: 16px;
+  margin-top: 4px;
+}
+.claim-history-card ul,
+.claim-history-card p {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  line-height: 1.65;
+  margin: 0;
+}
+.privacy-note {
+  margin: 14px 0 0;
+  border-radius: 18px;
+  padding: 14px;
+  background: #fff3df;
+  color: #6d3d0c;
+  border: 1px solid rgba(170,95,29,.18);
+  line-height: 1.6;
+}
+.claims-table {
+  min-width: 1240px;
+}
+.claim-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  min-width: 280px;
+}
+.claim-actions button,
+.insurance-export-grid button {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 8px 10px;
+  background: rgba(255,255,255,.78);
+  color: var(--forest);
+  font-size: 12px;
+  font-weight: 900;
+}
+.claim-actions button:nth-child(5) {
+  background: var(--forest);
+  color: #fff;
+}
+.insurance-export-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.insurance-export-grid button {
+  min-height: 62px;
+  text-align: left;
+  background: rgba(220,238,226,.68);
+}
+.insurance-demo-status {
+  margin: 14px 0 0;
+  border-radius: 16px;
+  padding: 12px;
+  background: rgba(220,238,226,.70);
+  color: var(--forest);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+.claim-detail-panel {
+  display: grid;
+  gap: 8px;
+}
+.claim-detail-panel strong {
+  color: var(--forest);
+  font-size: 17px;
+  line-height: 1.35;
 }
 .risk-ranking {
   list-style: none;

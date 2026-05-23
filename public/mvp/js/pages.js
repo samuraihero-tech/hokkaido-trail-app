@@ -620,23 +620,27 @@
 
   function initPartner() {
     const courses = [
-      { id: "wetland", name: "釧路湿原ショート", distance: "12.4km", supplyGap: 4.8, incidents: 3, risks: "ぬかるみ / 道迷い", score: 46, multiplier: 1.08 },
-      { id: "kawayu", name: "川湯温泉 - 神の子池", distance: "21.8km", supplyGap: 16.2, incidents: 11, risks: "補給空白 / ヒグマ", score: 78, multiplier: 1.42 },
-      { id: "shiretoko", name: "知床斜里 - 羅臼", distance: "28.6km", supplyGap: 18.5, incidents: 14, risks: "高低差 / 悪天候", score: 86, multiplier: 1.68 },
-      { id: "akan", name: "阿寒・摩周連絡", distance: "24.1km", supplyGap: 13.4, incidents: 8, risks: "山間部 / 通信不安", score: 69, multiplier: 1.31 }
+      { id: "wetland", name: "釧路湿原ショート", distance: "12.4km", duration: "4.2h", supplyGap: 4.8, exitHard: "低", offline: "一部", incidents: 3, risks: "ぬかるみ / 道迷い", score: 46, multiplier: 1.08, condition: "通常" },
+      { id: "kawayu", name: "川湯温泉〜神の子池", distance: "21.8km", duration: "7.1h", supplyGap: 16.2, exitHard: "中", offline: "あり", incidents: 11, risks: "補給空白 / ヒグマ", score: 78, multiplier: 1.42, condition: "補給確認・位置共有推奨" },
+      { id: "shiretoko", name: "知床斜里〜羅臼", distance: "28.6km", duration: "9.0h", supplyGap: 18.5, exitHard: "高", offline: "あり", incidents: 14, risks: "高低差 / 悪天候 / 通信不安", score: 86, multiplier: 1.68, condition: "ガイド同行推奨" },
+      { id: "akan", name: "阿寒・摩周連絡", distance: "24.1km", duration: "8.2h", supplyGap: 13.4, exitHard: "中", offline: "一部", incidents: 8, risks: "山間部 / 通信不安", score: 69, multiplier: 1.31, condition: "天候確認必須" }
+    ];
+    const claimLogs = [
+      { time: "13:42", id: "USER-2048", route: "川湯温泉〜神の子池", type: "転倒・足首負傷", location: "神の子池手前1.8km", behavior: "補給未経由 / 80m逸脱", weather: "雨量8mm", status: "事実確認中", owner: "査定A" },
+      { time: "12:18", id: "USER-1192", route: "知床斜里〜羅臼", type: "SOS・道迷い", location: "羅臼側山間部", behavior: "位置共有OFF", weather: "風速11m/s", status: "査定中", owner: "査定B" },
+      { time: "10:55", id: "USER-3310", route: "阿寒・摩周連絡", type: "体調不良", location: "山間部休憩地点", behavior: "高温下で補給遅れ", weather: "最高31℃", status: "医療機関確認中", owner: "査定C" },
+      { time: "09:36", id: "USER-0874", route: "釧路湿原ショート", type: "ぬかるみ転倒", location: "湿原木道付近", behavior: "推奨ルート内", weather: "小雨", status: "支払い承認", owner: "査定A" }
     ];
     renderCourseRiskTable(courses);
+    renderWeatherRisk();
+    renderBehaviorRisk();
+    renderClaimLogs(claimLogs);
     initPremiumSimulator(courses);
+    initInsuranceInteractions(claimLogs);
     const avgScore = Math.round(courses.reduce((sum, course) => sum + course.score, 0) / courses.length);
     const avgMultiplier = courses.reduce((sum, course) => sum + course.multiplier, 0) / courses.length;
     setText("insuranceAverageScore", avgScore);
     setText("insuranceAverageMultiplier", `${avgMultiplier.toFixed(2)}x`);
-    const reportButton = document.getElementById("monthlyRiskReportButton");
-    if (reportButton) {
-      reportButton.addEventListener("click", () => {
-        reportButton.textContent = "月次リスクレポートを生成しました";
-      });
-    }
   }
 
   function renderCourseRiskTable(courses) {
@@ -646,60 +650,225 @@
       <tr>
         <td><strong>${escapeHtml(course.name)}</strong></td>
         <td>${escapeHtml(course.distance)}</td>
+        <td>${escapeHtml(course.duration)}</td>
         <td>${course.supplyGap.toFixed(1)}km</td>
+        <td>${escapeHtml(course.exitHard)}</td>
+        <td>${escapeHtml(course.offline)}</td>
         <td>${course.incidents}件</td>
         <td>${escapeHtml(course.risks)}</td>
         <td><span class="risk-score ${course.score >= 80 ? "high" : course.score >= 65 ? "medium" : "low"}">${course.score}</span></td>
         <td><strong>${course.multiplier.toFixed(2)}x</strong></td>
+        <td>${escapeHtml(course.condition)}</td>
+      </tr>
+    `).join("");
+  }
+
+  function renderWeatherRisk() {
+    const root = document.getElementById("weatherRiskGrid");
+    if (!root) return;
+    const rows = [
+      ["最高気温25℃未満", "0.42%", "標準", "通常の行動判断で大きな増加なし"],
+      ["最高気温28℃以上", "1.12%", "+0.18x", "熱中症・判断力低下を加味"],
+      ["雨量5mm以上", "1.35%", "+0.22x", "ぬかるみ・転倒リスクが上昇"],
+      ["風速10m/s以上", "1.48%", "+0.25x", "低体温・進行遅延を加味"],
+      ["日没後行動あり", "2.10%", "+0.35x", "道迷い・救助遅延が増加"],
+      ["高温×補給空白10km以上", "2.85%", "+0.48x", "複合リスクとして最優先評価"]
+    ];
+    root.innerHTML = rows.map(([title, rate, impact, memo]) => `
+      <article class="weather-risk-card">
+        <strong>${escapeHtml(title)}</strong>
+        <span>事故率 ${escapeHtml(rate)}</span>
+        <em>${escapeHtml(impact)}</em>
+        <p>${escapeHtml(memo)}</p>
+      </article>
+    `).join("");
+  }
+
+  function renderBehaviorRisk() {
+    const root = document.getElementById("behaviorRiskGrid");
+    if (!root) return;
+    const rows = [
+      ["推奨ルートを外れた", "高", "+0.30x", "道迷い・救助遅延リスクを加算"],
+      ["補給地点を経由しなかった", "高", "+0.22x", "熱中症・疲労による事故率が上昇"],
+      ["日没後に行動した", "非常に高", "+0.35x", "視界低下と位置特定遅延を加算"],
+      ["位置共有OFF", "中", "+0.15x", "事故対応の初動遅延を加味"],
+      ["ガイド同行あり", "低", "-0.15x", "判断支援と早期通報によりリスク低下"],
+      ["自販機/コンビニ経由あり", "低", "-0.10x", "補給確保により体調リスク低下"]
+    ];
+    root.innerHTML = rows.map(([action, rate, impact, comment]) => `
+      <article class="behavior-risk-card ${impact.startsWith("-") ? "good" : rate === "非常に高" ? "high" : "caution"}">
+        <strong>${escapeHtml(action)}</strong>
+        <span>事故率: ${escapeHtml(rate)}</span>
+        <em>${escapeHtml(impact)}</em>
+        <p>${escapeHtml(comment)}</p>
+      </article>
+    `).join("");
+  }
+
+  function renderClaimLogs(logs) {
+    const root = document.getElementById("claimLogBody");
+    if (!root) return;
+    root.innerHTML = logs.map((log, index) => `
+      <tr>
+        <td>${escapeHtml(log.time)}</td>
+        <td>${escapeHtml(log.id)}</td>
+        <td>${escapeHtml(log.route)}</td>
+        <td>${escapeHtml(log.type)}</td>
+        <td>${escapeHtml(log.location)}</td>
+        <td>${escapeHtml(log.behavior)}</td>
+        <td>${escapeHtml(log.weather)}</td>
+        <td><span class="log-status ${log.status.includes("承認") ? "" : "medium"}">${escapeHtml(log.status)}</span></td>
+        <td>${escapeHtml(log.owner)}</td>
+        <td><div class="claim-actions">
+          <button type="button" data-claim-action="詳細を見る" data-claim-index="${index}">詳細</button>
+          <button type="button" data-claim-action="位置を確認" data-claim-index="${index}">位置</button>
+          <button type="button" data-claim-action="行動履歴を見る" data-claim-index="${index}">履歴</button>
+          <button type="button" data-claim-action="査定メモを追加" data-claim-index="${index}">メモ</button>
+          <button type="button" data-claim-action="支払い承認" data-claim-index="${index}">承認</button>
+          <button type="button" data-claim-action="クローズ" data-claim-index="${index}">クローズ</button>
+        </div></td>
       </tr>
     `).join("");
   }
 
   function initPremiumSimulator(courses) {
     const courseInput = document.getElementById("simCourse");
+    if (courseInput && !courseInput.options.length) {
+      courseInput.innerHTML = courses.map((course) => `<option value="${escapeHtml(course.id)}">${escapeHtml(course.name)}</option>`).join("");
+      courseInput.value = "kawayu";
+    }
     const tempInput = document.getElementById("simTemp");
     const rainInput = document.getElementById("simRain");
+    const windInput = document.getElementById("simWind");
+    const supplyGapInput = document.getElementById("simSupplyGap");
     const nightInput = document.getElementById("simNight");
     const guideInput = document.getElementById("simGuide");
     const supplyInput = document.getElementById("simSupply");
+    const locationInput = document.getElementById("simLocation");
     const bearInput = document.getElementById("simBear");
+    const soloInput = document.getElementById("simSolo");
     if (!courseInput || !tempInput || !rainInput || !nightInput || !guideInput || !supplyInput || !bearInput) return;
 
     function calculate() {
       const course = courses.find((item) => item.id === courseInput.value) || courses[0];
       const temp = Number(tempInput.value || 0);
       const rain = Number(rainInput.value || 0);
+      const wind = Number(windInput?.value || 0);
+      const supplyGap = Number(supplyGapInput?.value || course.supplyGap);
       let score = course.score;
       if (temp >= 30) score += 10;
       else if (temp >= 28) score += 6;
-      if (rain >= 30) score += 10;
-      else if (rain >= 10) score += 5;
+      if (rain >= 5) score += 7;
+      if (rain >= 20) score += 5;
+      if (wind >= 10) score += 8;
+      if (supplyGap >= 15) score += 8;
       if (nightInput.checked) score += 12;
       if (!guideInput.checked) score += 8;
       if (supplyInput.checked) score -= 9;
       else score += 7;
+      if (locationInput && !locationInput.checked) score += 9;
       if (bearInput.checked) score += 7;
+      if (soloInput?.checked) score += 6;
       score = Math.max(20, Math.min(100, Math.round(score)));
-      const grade = score >= 85 ? "高リスク" : score >= 70 ? "注意" : score >= 55 ? "標準+" : "標準";
-      const multiplier = Math.max(1, 0.72 + score / 100 + (nightInput.checked ? 0.08 : 0) - (guideInput.checked ? 0.08 : 0));
-      const condition = score >= 85 ? "条件付き引受 / ガイド同行・位置共有を推奨" : score >= 70 ? "割増引受 / 出発前チェック必須" : "標準引受 / 推奨ルート利用で割引候補";
-      const memo = [
-        course.supplyGap >= 15 ? "補給空白が15km以上です。" : "補給空白は許容範囲です。",
-        temp >= 30 ? "最高気温30℃以上のため熱中症リスクを加算。" : "気温条件は中程度です。",
-        supplyInput.checked ? "自販機・コンビニ経由により事故率低下を反映。" : "補給地点未経由のため行動リスクを加算。"
-      ].join(" ");
+      const grade = score >= 88 ? "条件付き引受" : score >= 72 ? "割増引受" : "通常引受";
+      const incidentRate = Math.max(0.25, score * 0.022 + (nightInput.checked ? 0.28 : 0) + (supplyGap >= 15 ? 0.18 : 0)).toFixed(2);
+      const multiplier = Math.max(1, 0.78 + score / 100 + (nightInput.checked ? 0.08 : 0) - (guideInput.checked ? 0.08 : 0));
+      const surcharges = [
+        supplyGap >= 15 ? "補給空白15km以上" : "",
+        temp >= 30 ? "最高気温30℃以上" : "",
+        rain >= 5 ? "雨量5mm以上" : "",
+        wind >= 10 ? "風速10m/s以上" : "",
+        nightInput.checked ? "日没後行動あり" : "",
+        bearInput.checked ? "ヒグマ注意エリア通過" : "",
+        locationInput && !locationInput.checked ? "位置共有OFF" : "",
+        soloInput?.checked ? "単独行動" : ""
+      ].filter(Boolean);
+      const discounts = [
+        guideInput.checked ? "ガイド同行" : "",
+        supplyInput.checked ? "自販機/コンビニ経由" : "",
+        locationInput?.checked ? "位置共有ON" : "",
+        !soloInput?.checked ? "グループ行動" : ""
+      ].filter(Boolean);
+      const condition = `${grade}: 位置共有ON、出発前チェック完了、補給地点経由を推奨`;
       setText("simRiskScore", score);
       setText("simRiskGrade", grade);
+      setText("simIncidentRate", `${incidentRate}%`);
       setText("simMultiplier", `${multiplier.toFixed(2)}x`);
       setText("simCondition", condition);
-      setText("simMemo", memo);
+      setText("simMemo", `割増理由: ${surcharges.length ? surcharges.join(" / ") : "大きな割増要因なし"}`);
+      setText("simDiscountMemo", `割引理由: ${discounts.length ? discounts.join(" / ") : "該当なし"}`);
     }
 
-    [courseInput, tempInput, rainInput, nightInput, guideInput, supplyInput, bearInput].forEach((input) => {
+    [courseInput, tempInput, rainInput, windInput, supplyGapInput, nightInput, guideInput, supplyInput, locationInput, bearInput, soloInput].filter(Boolean).forEach((input) => {
       input.addEventListener("input", calculate);
       input.addEventListener("change", calculate);
     });
     calculate();
+  }
+
+  function initInsuranceInteractions(claimLogs) {
+    const tabs = document.querySelectorAll("[data-insurance-tab]");
+    const panels = document.querySelectorAll("[data-insurance-panel]");
+    const claimStatus = document.getElementById("claimActionStatus");
+    const claimDetail = document.getElementById("claimDetailPanel");
+    const mapStatus = document.getElementById("insuranceMapStatus");
+    const exportStatus = document.getElementById("insuranceExportStatus");
+
+    tabs.forEach((button) => {
+      button.addEventListener("click", () => {
+        tabs.forEach((item) => item.setAttribute("aria-pressed", item === button ? "true" : "false"));
+        panels.forEach((panel) => panel.classList.toggle("active", panel.dataset.insurancePanel === button.dataset.insuranceTab));
+      });
+    });
+
+    function showClaim(log, action = "詳細表示") {
+      if (claimDetail) {
+        claimDetail.innerHTML = `
+          <strong>${escapeHtml(log.id)} / ${escapeHtml(log.type)}</strong>
+          <span>ルート：${escapeHtml(log.route)}</span>
+          <span>事故地点：${escapeHtml(log.location)}</span>
+          <span>天候：${escapeHtml(log.weather)}</span>
+          <span>直前行動：${escapeHtml(log.behavior)}</span>
+          <span>査定状態：${escapeHtml(log.status)}</span>
+        `;
+      }
+      if (claimStatus) claimStatus.textContent = `${log.id}: 「${action}」を実行するデモ状態にしました。`;
+      if (mapStatus) mapStatus.textContent = `${log.id} / ${log.type} / ${log.route} / ${log.weather} / 査定状態: ${log.status}`;
+    }
+
+    document.querySelectorAll("[data-claim-action]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const log = claimLogs[Number(button.dataset.claimIndex)] || claimLogs[0];
+        showClaim(log, button.dataset.claimAction);
+      });
+    });
+
+    document.querySelectorAll("[data-claim-point]").forEach((point) => {
+      point.addEventListener("click", () => {
+        const log = claimLogs.find((item) => item.id === point.dataset.claimPoint) || claimLogs[0];
+        showClaim(log, "地図上の事故地点を確認");
+      });
+    });
+
+    document.querySelectorAll("[data-insurance-export]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const kind = button.dataset.insuranceExport;
+        if (kind === "monthly") {
+          if (exportStatus) exportStatus.textContent = "月次リスクレポートPDFを出力しました。";
+          button.textContent = "月次リスクレポートを出力しました";
+          return;
+        }
+        const csv = `"type","value"\n"${kind}","demo export"\n`;
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `insurance-${kind}-demo.csv`;
+        link.click();
+        URL.revokeObjectURL(url);
+        if (exportStatus) exportStatus.textContent = `${kind} CSVを出力しました。`;
+      });
+    });
   }
 
   function init() {
