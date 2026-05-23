@@ -1,13 +1,20 @@
 (function () {
   const data = window.TRAIL_MVP_DATA;
   const officialMaps = window.TRAIL_MVP_ROUTE_MAPS || [];
+  const courses = window.TRAIL_MVP_COURSES || [];
+  const layerModes = {
+    "安全優先": ["water", "toilet", "parking", "bear", "danger", "transport", "trailhead"],
+    "補給": ["vending", "convenience", "food", "accommodation", "water", "trailhead"],
+    "観光": ["viewpoint", "food", "accommodation", "transport", "town", "trailhead"]
+  };
   let map;
   let routeLayer;
   let surfaceLayer;
   let shadeLayer;
   let markerLayers = new Map();
-  let activeLayers = new Set(data.layerDefinitions.filter((l) => l.enabled).map((l) => l.key));
+  let activeLayers = new Set(layerModes["安全優先"]);
   let currentComfort = null;
+  let selectedCourse = courses[0] || null;
 
   const layerMeta = Object.fromEntries(data.layerDefinitions.map((layer) => [layer.key, layer]));
 
@@ -111,20 +118,27 @@
   function renderLayerControls() {
     const root = document.getElementById("layerControls");
     root.innerHTML = "";
-    data.layerDefinitions.forEach((layer) => {
+    Object.entries(layerModes).forEach(([mode, layers]) => {
       const button = document.createElement("button");
       button.type = "button";
-      button.className = "layer-chip";
-      button.setAttribute("aria-pressed", activeLayers.has(layer.key) ? "true" : "false");
-      button.innerHTML = `<span class="layer-dot" style="color: ${layer.color}"></span>${layer.label}`;
+      button.className = "mode-chip";
+      button.setAttribute("aria-pressed", isModeActive(layers) ? "true" : "false");
+      button.innerHTML = `<strong>${mode}</strong><span>${layers.map(getLayerLabel).slice(0, 3).join("・")}...</span>`;
       button.addEventListener("click", () => {
-        if (activeLayers.has(layer.key)) activeLayers.delete(layer.key);
-        else activeLayers.add(layer.key);
-        button.setAttribute("aria-pressed", activeLayers.has(layer.key) ? "true" : "false");
-        updateOverlayLayers();
+        applyLayerMode(mode);
       });
       root.appendChild(button);
     });
+  }
+
+  function isModeActive(layers) {
+    return layers.every((layer) => activeLayers.has(layer));
+  }
+
+  function applyLayerMode(mode) {
+    activeLayers = new Set(layerModes[mode] || layerModes["安全優先"]);
+    renderLayerControls();
+    if (map) updateOverlayLayers();
   }
 
 
@@ -182,6 +196,79 @@
     `).join("");
   }
 
+  function renderCourseOptions() {
+    const root = document.getElementById("courseSelectGrid");
+    if (!root || !courses.length) return;
+    root.innerHTML = courses.map((course, index) => `
+      <button type="button" data-course-id="${escapeHtml(course.id)}" aria-pressed="${index === 0 ? "true" : "false"}">
+        <strong>${escapeHtml(course.name)}</strong>
+        <span>${escapeHtml(course.distance)} / ${escapeHtml(course.difficulty)}</span>
+      </button>
+    `).join("");
+    root.querySelectorAll("[data-course-id]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const course = courses.find((item) => item.id === button.dataset.courseId);
+        if (course) selectCourse(course);
+        root.querySelectorAll("button").forEach((item) => item.setAttribute("aria-pressed", "false"));
+        button.setAttribute("aria-pressed", "true");
+        const firstRequired = document.querySelector("[data-required-check]");
+        if (firstRequired) firstRequired.checked = true;
+        updatePrestartButton();
+      });
+    });
+    selectCourse(selectedCourse || courses[0]);
+  }
+
+  function selectCourse(course) {
+    selectedCourse = course;
+    if (!course) return;
+    setText("todayRouteName", course.name);
+    setText("todayRouteDistance", course.distance);
+    setText("todayRouteDuration", course.duration);
+    setText("todayRouteDifficulty", course.difficulty);
+    setText("todayRouteStart", course.start);
+    setText("todayRouteEnd", course.end);
+    setText("todayRouteCaution", course.caution);
+    setText("modalCourseName", course.name);
+    setText("modalCourseSummary", `${course.distance} / ${course.duration} / ${course.difficulty}`);
+    setText("modalCourseWarning", course.caution);
+    const points = document.getElementById("importantPointList");
+    if (points) points.innerHTML = course.next.map((item) => `<div>${escapeHtml(item)}</div>`).join("");
+    applyLayerMode(course.mode || "安全優先");
+  }
+
+  function setText(id, value) {
+    const element = document.getElementById(id);
+    if (element) element.textContent = value;
+  }
+
+  function initPrestartModal() {
+    const modal = document.getElementById("prestartModal");
+    const backdrop = document.getElementById("prestartBackdrop");
+    const button = document.getElementById("showMapButton");
+    if (!modal || !backdrop || !button) return;
+    renderCourseOptions();
+    document.querySelectorAll("[data-required-check]").forEach((check) => {
+      check.addEventListener("change", updatePrestartButton);
+    });
+    button.addEventListener("click", () => {
+      if (button.disabled) return;
+      modal.classList.add("closed");
+      backdrop.hidden = true;
+      setTimeout(() => map?.invalidateSize(), 80);
+    });
+    updatePrestartButton();
+  }
+
+  function updatePrestartButton() {
+    const button = document.getElementById("showMapButton");
+    if (!button) return;
+    const checks = [...document.querySelectorAll("[data-required-check]")];
+    const done = checks.length > 0 && checks.every((check) => check.checked);
+    button.disabled = !done;
+    button.textContent = done ? "地図を表示" : "必須項目を確認してください";
+  }
+
   async function getWeather() {
     // Try live weather. Fall back to static sample if API/network is unavailable.
     const [lat, lng] = data.center;
@@ -217,8 +304,16 @@
 
     document.getElementById("comfortScore").textContent = currentComfort.score;
     document.getElementById("scoreRingValue").textContent = currentComfort.score;
-    document.getElementById("comfortStatus").textContent = currentComfort.status;
-    document.getElementById("comfortReason").textContent = currentComfort.reason;
+    document.getElementById("comfortStatus").textContent = `判定：${currentComfort.status}`;
+    document.getElementById("comfortReason").textContent = selectedCourse
+      ? `${selectedCourse.name}は、${selectedCourse.caution}`
+      : currentComfort.reason;
+    const actionPreview = document.getElementById("comfortActionPreview");
+    if (actionPreview) {
+      actionPreview.textContent = currentComfort.score < 65
+        ? "水を1L以上確保し、次の補給地点と離脱地点を確認してください。"
+        : "次の水場・トイレと日没までの余裕を確認してください。";
+    }
     if (document.getElementById("heatRisk")) document.getElementById("heatRisk").textContent = currentComfort.heatRisk;
     if (document.getElementById("rainRisk")) document.getElementById("rainRisk").textContent = currentComfort.rainRisk;
     if (document.getElementById("terrainLoad")) document.getElementById("terrainLoad").textContent = currentComfort.terrainLoad;
@@ -270,7 +365,7 @@
       </div>
       <div class="drawer-section">
         <h3>メモ・注意</h3>
-        <p class="muted">${escapeHtml(place.notes)}</p>
+        <p class="muted">${escapeHtml(getUserFacingNote(place))}</p>
         <p><a class="secondary-button" style="display:inline-block;text-decoration:none;width:auto" target="_blank" rel="noopener" href="${place.googleMaps}">Google Mapsで開く</a></p>
       </div>
     `;
@@ -320,6 +415,8 @@
     const closeButton = document.getElementById("closeEmergencySheet");
     const locationStatus = document.getElementById("locationShareStatus");
     const status = document.getElementById("emergencyStatus");
+    const copyLocationButton = document.getElementById("copyLocationButton");
+    const locationUrl = document.getElementById("locationShareUrl");
     const situationButtons = document.querySelectorAll("[data-emergency-action]");
     const channelButtons = document.querySelectorAll("[data-support-channel]");
     let selectedSituation = "";
@@ -367,6 +464,18 @@
       });
     });
 
+    if (copyLocationButton) {
+      copyLocationButton.addEventListener("click", async () => {
+        const text = locationUrl?.textContent || "https://maps.google.com/?q=43.6388,144.4382";
+        try {
+          await navigator.clipboard?.writeText(text);
+          status.textContent = "現在地URLをコピーしました。必要な相手に共有できます。";
+        } catch (e) {
+          status.textContent = `現在地URL: ${text}`;
+        }
+      });
+    }
+
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") closeSheet();
     });
@@ -397,6 +506,16 @@
     return layerMeta[key]?.label || key;
   }
 
+  function getUserFacingNote(place) {
+    if (["water", "toilet", "food", "accommodation", "vending", "convenience"].includes(place.layer)) {
+      return "営業状況・利用可否は変わることがあります。出発前と現地で最新情報を確認してください。";
+    }
+    if (["bear", "danger"].includes(place.layer)) {
+      return "注意情報は参考表示です。自治体・現地掲示・ガイド情報などで最新状況を確認してください。";
+    }
+    return place.notes || "詳細は現地で確認してください。";
+  }
+
   function escapeHtml(str) {
     return String(str).replace(/[&<>"']/g, (s) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[s]));
   }
@@ -407,7 +526,6 @@
     const drawerBackdrop = document.getElementById("drawerBackdrop");
     const adminButton = document.getElementById("adminButton");
     const fitRouteButton = document.getElementById("fitRouteButton");
-    const resetLayersButton = document.getElementById("resetLayers");
     const searchInput = document.getElementById("searchInput");
 
     if (openScoreButton) openScoreButton.addEventListener("click", openScoreDetail);
@@ -419,11 +537,6 @@
       else openAdmin();
     });
     if (fitRouteButton) fitRouteButton.addEventListener("click", fitRoute);
-    if (resetLayersButton) resetLayersButton.addEventListener("click", () => {
-      activeLayers = new Set(data.layerDefinitions.filter((l) => l.enabled).map((l) => l.key));
-      renderLayerControls();
-      updateOverlayLayers();
-    });
     if (searchInput) searchInput.addEventListener("input", (event) => filterPlaces(event.target.value));
     initEmergencySupport();
     document.addEventListener("keydown", (event) => {
@@ -436,6 +549,7 @@
     renderOfficialMaps();
     renderChecklist();
     bindEvents();
+    initPrestartModal();
     if (!window.L) {
       document.getElementById("map").innerHTML = `
         <div style="position:absolute;inset:0;display:grid;place-items:center;padding:24px;background:#dfe8dc;color:#123828;text-align:center;">

@@ -38,7 +38,11 @@
             </div>
             <div class="score-ring" aria-hidden="true"><span id="scoreRingValue">--</span></div>
           </div>
-          <p id="comfortReason" class="reason-text">天気・地形・補給地点をもとに推定しています。</p>
+          <p id="comfortReason" class="reason-text">コース・補給・注意情報をもとに行動判断を補助します。</p>
+          <div class="comfort-actions-preview">
+            <strong>推奨行動</strong>
+            <span id="comfortActionPreview">水と次の補給地点を確認してください。</span>
+          </div>
           <button id="openScoreButton" class="primary-button" type="button">なぜこのスコア？</button>
         </section>
 
@@ -53,27 +57,31 @@
         <section class="panel-card">
           <div class="section-title-row">
             <div>
-              <p class="eyebrow">Layers</p>
-              <h2>表示レイヤー</h2>
+          <p class="eyebrow">Map Mode</p>
+          <h2>表示モード</h2>
             </div>
-            <button class="text-button" id="resetLayers" type="button">初期化</button>
           </div>
-          <div class="layer-grid" id="layerControls" aria-label="レイヤー切替"></div>
+          <div class="mode-grid" id="layerControls" aria-label="表示モード切替"></div>
         </section>
 
         <section class="panel-card route-card">
-          <p class="eyebrow">Trail Area</p>
-          <h2>川湯温泉 〜 神の子池 〜 清里</h2>
-          <div class="route-stats">
-            <div><span>地点数</span><strong>625件</strong></div>
-            <div><span>初期表示</span><strong>主要レイヤー</strong></div>
-            <div><span>表示ルート</span><strong>陸上デモ</strong></div>
+          <p class="eyebrow">Today's Route</p>
+          <h2 id="todayRouteName">コース未選択</h2>
+          <div class="today-route-grid">
+            <div><span>距離</span><strong id="todayRouteDistance">--</strong></div>
+            <div><span>所要時間</span><strong id="todayRouteDuration">--</strong></div>
+            <div><span>難易度</span><strong id="todayRouteDifficulty">--</strong></div>
+            <div><span>起点</span><strong id="todayRouteStart">--</strong></div>
+            <div><span>終点</span><strong id="todayRouteEnd">--</strong></div>
           </div>
-          <div class="route-alert warning">
-            <strong>注意</strong>
-            <p>CSV由来の広域地点データを表示しています。水場・危険情報は現地確認前提で、食事・宿泊は件数が多いため初期表示をオフにしています。</p>
-          </div>
-          <button id="fitRouteButton" class="secondary-button" type="button">トレイル広域を表示</button>
+          <p id="todayRouteCaution" class="route-user-note">出発前チェックで今日のコースを選択してください。</p>
+          <button id="fitRouteButton" class="secondary-button" type="button">選択コースを表示</button>
+        </section>
+
+        <section class="panel-card important-card">
+          <p class="eyebrow">Next Key Points</p>
+          <h2>次の重要ポイント</h2>
+          <div class="important-list" id="importantPointList"></div>
         </section>
 
         <section class="panel-card checklist-card">
@@ -86,7 +94,7 @@
   </div>
 
   <button class="emergency-fab" id="emergencySupportButton" type="button" aria-controls="emergencySheet">
-    <span>緊急サポート</span>
+    <span>SOS</span>
     <small>現在地・状況を共有</small>
   </button>
 
@@ -101,9 +109,9 @@
 
       <section class="location-share-card" aria-label="現在地共有">
         <div>
-          <p class="card-label">現在地共有カード</p>
+          <p class="card-label">現在地を取得</p>
           <h3>川湯温泉街付近</h3>
-          <p>43.6388, 144.4382 / 推定精度 80m</p>
+          <p id="locationShareUrl">https://maps.google.com/?q=43.6388,144.4382</p>
         </div>
         <span id="locationShareStatus">未共有</span>
       </section>
@@ -113,7 +121,7 @@
         <div class="emergency-choice-grid">
           <button type="button" data-emergency-action="道迷い">道迷い</button>
           <button type="button" data-emergency-action="ケガ">ケガ</button>
-          <button type="button" data-emergency-action="ヒグマ">ヒグマ</button>
+          <button type="button" data-emergency-action="ヒグマ目撃">ヒグマ目撃</button>
           <button type="button" data-emergency-action="体調不良">体調不良</button>
           <button type="button" data-emergency-action="悪天候">悪天候</button>
         </div>
@@ -122,15 +130,62 @@
       <section class="emergency-section" aria-label="連絡先選択">
         <h3>連絡先</h3>
         <div class="support-action-grid">
-          <button type="button" data-support-channel="観光協会にチャット">観光協会にチャット</button>
-          <button type="button" data-support-channel="ガイドに連絡">ガイドに連絡</button>
+          <button type="button" data-support-channel="観光協会">観光協会</button>
+          <button type="button" data-support-channel="ガイド">ガイド</button>
           <button type="button" data-support-channel="119/110/118">119/110/118</button>
         </div>
       </section>
+      <button class="secondary-button" id="copyLocationButton" type="button">現在地URLをコピー</button>
 
       <div class="emergency-status" id="emergencyStatus" role="status">
         状況を選択して、連絡先を選んでください。
       </div>
+    </div>
+  </section>
+
+  <div id="prestartBackdrop" class="prestart-backdrop"></div>
+  <section id="prestartModal" class="prestart-modal" aria-label="出発前チェック">
+    <div class="prestart-content">
+      <p class="eyebrow">Before Start</p>
+      <h2>今日のトレイル準備</h2>
+      <p class="muted">コースと必須チェックを確認すると、地図を表示できます。</p>
+
+      <section class="prestart-step">
+        <h3>1. 今日歩くコースを選んでください</h3>
+        <div class="course-select-grid" id="courseSelectGrid"></div>
+        <article class="selected-course-card">
+          <strong id="modalCourseName">コース未選択</strong>
+          <span id="modalCourseSummary">距離・時間・注意ポイントを確認します。</span>
+          <p id="modalCourseWarning"></p>
+        </article>
+      </section>
+
+      <section class="prestart-step">
+        <h3>2. 出発前チェック</h3>
+        <div class="precheck-group">
+          <p class="card-label">必須チェック</p>
+          <label><input type="checkbox" data-required-check /> 今日歩くコースを選択しました</label>
+          <label><input type="checkbox" data-required-check /> 水・食料を準備しました</label>
+          <label><input type="checkbox" data-required-check /> 天気・気温・風を確認しました</label>
+          <label><input type="checkbox" data-required-check /> ヒグマ対策を準備しました</label>
+          <label><input type="checkbox" data-required-check /> 日没前に到着できる計画です</label>
+          <label><input type="checkbox" data-required-check /> 緊急連絡先と帰路を確認しました</label>
+        </div>
+        <div class="precheck-group optional">
+          <p class="card-label">任意チェック</p>
+          <label><input type="checkbox" /> 位置共有をONにしました</label>
+          <label><input type="checkbox" /> オフライン地図を準備しました</label>
+          <label><input type="checkbox" /> モバイルバッテリーを準備しました</label>
+          <label><input type="checkbox" /> ガイド・宿泊先・交通手段を確認しました</label>
+        </div>
+      </section>
+
+      <section class="prestart-step">
+        <h3>3. 注意事項</h3>
+        <p class="prestart-warning">このアプリは行動判断を補助するものです。最新の天候・通行情報・現地状況を必ず確認してください。実際の安全を保証するものではありません。</p>
+      </section>
+
+      <button id="showMapButton" class="primary-button" type="button" disabled>必須項目を確認してください</button>
     </div>
   </section>
 
@@ -169,53 +224,6 @@
         <div><dt>観光地点</dt><dd>観光協会・現地事業者による確認</dd></div>
         <div><dt>ヒグマ注意</dt><dd>自治体・現地情報を反映する想定</dd></div>
       </dl>
-    </div>
-  </template>
-
-  <template id="adminTemplate">
-    <div class="drawer-section admin-drawer">
-      <p class="eyebrow">Local Management</p>
-      <h2>地域管理モード</h2>
-      <p class="muted">観光協会・自治体が地点情報や安全情報を更新できます。MVPでは管理画面の概念表示です。</p>
-      <div class="admin-metrics">
-        <div><span>登録地点数</span><strong id="adminPlaceCount">--</strong></div>
-        <div><span>未確認スポット</span><strong id="adminUnverifiedCount">--</strong></div>
-        <div><span>注意情報</span><strong id="adminWarningCount">--</strong></div>
-        <div><span>最終更新日</span><strong>2026/05/21</strong></div>
-      </div>
-      <div class="admin-actions">
-        <button type="button">地点を追加</button>
-        <button type="button">CSVインポート</button>
-        <button type="button">ヒグマ注意情報を更新</button>
-        <button type="button">観光協会確認済みにする</button>
-      </div>
-      <div class="sample-table-wrap">
-        <table class="sample-table">
-          <thead><tr><th>地点名</th><th>カテゴリ</th><th>状態</th><th>更新</th></tr></thead>
-          <tbody id="adminTableBody"></tbody>
-        </table>
-      </div>
-    </div>
-  </template>
-
-
-
-  <template id="officialMapTemplate">
-    <div class="drawer-section official-map-drawer">
-      <p class="eyebrow">Official Google My Maps</p>
-      <h2 id="officialMapTitle">公式マップ</h2>
-      <p id="officialMapDescription" class="muted"></p>
-      <div class="official-map-frame-wrap">
-        <iframe id="officialMapFrame" title="公式Google My Maps" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-      </div>
-      <div class="official-map-actions">
-        <a id="officialMapOpen" class="secondary-button" target="_blank" rel="noopener">Google My Mapsで開く</a>
-        <a id="officialMapKml" class="text-link" target="_blank" rel="noopener">アップロードKMLを確認</a>
-      </div>
-      <div class="route-alert note">
-        <strong>取り込み状態</strong>
-        <p id="officialMapStatus">NetworkLink型KMLとして参照しています。</p>
-      </div>
     </div>
   </template>
 
